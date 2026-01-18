@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS tb_users (
+
+    id BIGSERIAL PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL
+
+);
