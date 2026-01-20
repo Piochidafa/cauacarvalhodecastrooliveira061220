@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pet.api.dto.AuthenticationDTO;
 import com.pet.api.dto.RegisterDTO;
 import com.pet.api.model.User;
-import com.pet.api.model.UserRole;
+import com.pet.api.model.enums.UserRole;
 import com.pet.api.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

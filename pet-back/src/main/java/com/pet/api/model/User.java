@@ -1,5 +1,6 @@
 package com.pet.api.model;
 
+import com.pet.api.model.enums.UserRole;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

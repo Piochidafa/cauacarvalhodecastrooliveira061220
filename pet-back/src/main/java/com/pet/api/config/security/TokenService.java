@@ -19,8 +19,6 @@ public class TokenService {
 
     // Token com expiração de 5 minutos
     private static final long TOKEN_EXPIRATION_MINUTES = 5;
-    // Refresh token com expiração de 7 dias
-    private static final long REFRESH_TOKEN_EXPIRATION_DAYS = 7;
 
     public String generateToken(User user) {
         try {
@@ -38,22 +36,6 @@ public class TokenService {
         }
     }
 
-    public String generateRefreshToken(User user) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            Instant expiresAt = Instant.now().plus(REFRESH_TOKEN_EXPIRATION_DAYS, ChronoUnit.DAYS);
-            
-            String token = JWT.create()
-                    .withIssuer("auth-api")
-                    .withSubject(user.getUsername())
-                    .withClaim("type", "refresh")
-                    .withExpiresAt(expiresAt)
-                    .sign(algorithm);
-            return token;
-        } catch (JWTCreationException e) {
-            throw new RuntimeException("Erro ao gerar refresh token", e);
-        }
-    }
 
     public String validateToken(String token) {
         try {
@@ -68,17 +50,4 @@ public class TokenService {
         }
     }
 
-    public String validateRefreshToken(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
-            return JWT.require(algorithm)
-                    .withIssuer("auth-api")
-                    .withClaim("type", "refresh")
-                    .build()
-                    .verify(token)
-                    .getSubject();
-        } catch (JWTVerificationException e) {
-            return null;
-        }
-    }
 }
