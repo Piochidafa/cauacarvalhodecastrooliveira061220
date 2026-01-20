@@ -12,12 +12,11 @@ import org.springframework.context.annotation.Configuration;
 public class swaggerConf {
 
     @Bean
-    public OpenAPI customAPI(){
+    public OpenAPI customAPI() {
         return new OpenAPI()
                 .info(new Info()
                         .title("Swagger Seletivo Engenheiro")
                         .version("1.0")
-
                 )
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth",
@@ -27,8 +26,8 @@ public class swaggerConf {
                                         .bearerFormat("JWT")
                                         .description("Informe apenas o token JWT, sem o prefixo 'Bearer'")
                         )
-                )
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+                );
     }
+
 
 }
