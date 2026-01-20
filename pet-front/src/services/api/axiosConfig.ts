@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { cookieUtils } from '../../utils/cookies';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
@@ -6,6 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 api.interceptors.request.use(
@@ -29,7 +31,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      cookieUtils.remove('refreshToken');
       window.location.href = '/login';
     }
     return Promise.reject(error);

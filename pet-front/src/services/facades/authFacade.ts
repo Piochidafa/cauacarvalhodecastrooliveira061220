@@ -1,5 +1,6 @@
 import api from '../api/axiosConfig';
 import type { LoginRequest, LoginResponse } from '../types/auth.types';
+import { cookieUtils } from '../../utils/cookies';
 
 export const authFacade = {
 
@@ -12,7 +13,7 @@ export const authFacade = {
       }
       
       if (response.data.refreshToken) {
-        localStorage.setItem('refreshToken', response.data.refreshToken);
+        cookieUtils.set('refreshToken', response.data.refreshToken, 7);
       }
       
       return response.data;
@@ -32,7 +33,7 @@ export const authFacade = {
       console.error('Erro ao realizar logout:', error);
     } finally {
       localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      cookieUtils.remove('refreshToken');
     }
   },
 
@@ -45,6 +46,27 @@ export const authFacade = {
   },
 
   getRefreshToken: (): string | null => {
-    return localStorage.getItem('refreshToken');
+    return cookieUtils.get('refreshToken');
+  },
+
+  refreshToken: async (): Promise<LoginResponse> => {
+    try {
+      const response = await api.post<LoginResponse>('/auth/refresh');
+      
+      if (response.data.accessToken) {
+        localStorage.setItem('accessToken', response.data.accessToken);
+      }
+      
+      if (response.data.refreshToken) {
+        cookieUtils.set('refreshToken', response.data.refreshToken, 7);
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      throw {
+        message: error.response?.data?.message || 'Erro ao renovar token',
+        statusCode: error.response?.status,
+      };
+    }
   },
 };

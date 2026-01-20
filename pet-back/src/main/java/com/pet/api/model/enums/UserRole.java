@@ -1,4 +1,4 @@
-package com.pet.api.model;
+package com.pet.api.model.enums;
 
 public enum UserRole {
 
