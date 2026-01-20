@@ -1,4 +1,4 @@
 CREATE TABLE tb_regional (
     id          BIGSERIAL PRIMARY KEY,
-    name        VARCHAR(200) NOT NULL
+    nome        VARCHAR(200) NOT NULL
 );
