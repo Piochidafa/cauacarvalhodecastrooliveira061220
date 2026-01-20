@@ -1,4 +1,4 @@
-CREATE TABLE refresh_token (
+CREATE TABLE tb_refresh_token (
     id          UUID PRIMARY KEY,
     user_id     BIGSERIAL NOT NULL,
     token       VARCHAR(255) UNIQUE NOT NULL,
