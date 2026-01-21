@@ -3,6 +3,7 @@ package com.pet.api.controller;
 import com.pet.api.config.security.TokenService;
 import com.pet.api.dto.*;
 import com.pet.api.service.RefreshTokenService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
@@ -22,7 +23,7 @@ import com.pet.api.repository.UserRepository;
 import java.time.Duration;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/v1/auth")
 public class AuthenticationController {
 
     @Autowired

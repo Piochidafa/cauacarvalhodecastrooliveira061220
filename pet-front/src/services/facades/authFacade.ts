@@ -6,7 +6,7 @@ export const authFacade = {
 
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     try {
-      const response = await api.post<LoginResponse>('/auth/login', credentials);
+      const response = await api.post<LoginResponse>('/v1/auth/login', credentials);
       
       if (response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
@@ -28,7 +28,7 @@ export const authFacade = {
 
   logout: async (): Promise<void> => {
     try {
-      await api.post('/auth/logout');
+      await api.post('/v1/auth/logout');
     } catch (error) {
       console.error('Erro ao realizar logout:', error);
     } finally {
@@ -51,7 +51,7 @@ export const authFacade = {
 
   refreshToken: async (): Promise<LoginResponse> => {
     try {
-      const response = await api.post<LoginResponse>('/auth/refresh');
+      const response = await api.post<LoginResponse>('/v1/auth/refresh');
       
       if (response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
