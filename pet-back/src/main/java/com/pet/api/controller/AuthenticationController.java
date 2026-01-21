@@ -50,28 +50,6 @@ public class AuthenticationController {
         return ResponseEntity.ok(new AuthenticationResponseDTO(accessToken, refreshToken, 300L));
     }
 
-
-//    @PostMapping("/refresh")
-//    public ResponseEntity<RefreshTokenResponseDTO> refresh(@RequestBody @Valid RefreshTokenDTO data) {
-//        RefreshToken username = refreshTokenService.validateRefreshToken(data.refreshToken());
-//
-//        if (username == null) {
-//            return ResponseEntity.status(401).build();
-//        }
-//
-//
-//        User user = userRepository.findUserByUsername(username.getUser().getUsername());
-//        if (user == null) {
-//            return ResponseEntity.status(401).build();
-//        }
-//
-//        String accessToken = tokenService.generateToken(user);
-//        String refreshToken = refreshTokenService.generateRefreshToken(user);
-//
-//        return ResponseEntity.ok(new RefreshTokenResponseDTO(accessToken, refreshToken, 300L));
-//    }
-
-
     @PostMapping("/refresh")
     public ResponseEntity<RefreshTokenResponseDTO> refresh(
             @CookieValue("refreshToken") String refreshTokenValue,

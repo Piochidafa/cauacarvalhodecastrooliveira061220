@@ -74,12 +74,10 @@ public class AlbumService {
         albumRepository.delete(album);
     }
 
-    // Buscar álbuns por ID do artista
     public Page<Album> getAlbumsByArtistaId(Long artistaId, Pageable pageable){
         return albumRepository.findByArtista_Id(artistaId, pageable);
     }
 
-    // Buscar álbuns por nome do artista com ordenação
     public Page<Album> getAlbumsByArtistaNome(String nomeArtista, Pageable pageable){
         return albumRepository.findByArtistaNomeContaining(nomeArtista, pageable);
     }

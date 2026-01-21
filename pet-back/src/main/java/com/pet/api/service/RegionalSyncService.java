@@ -43,7 +43,6 @@ public class RegionalSyncService {
 
     private void sincronizarRegionais() {
         try {
-            // 1. Buscar regionais da API externa
             ResponseEntity<List<RegionalExternaDTO>> response = restTemplate.exchange(
                     API_URL, HttpMethod.GET, null,
                     new ParameterizedTypeReference<List<RegionalExternaDTO>>() {}
@@ -52,14 +51,12 @@ public class RegionalSyncService {
             List<RegionalExternaDTO> regionaisAPI = response.getBody();
             if (regionaisAPI == null) return;
 
-            // 2. Filtrar apenas as que começam com "REGIONAL DE"
             List<RegionalExternaDTO> regionaisFiltradas = regionaisAPI.stream()
                     .filter(r -> r.nome() != null && r.nome().startsWith(FILTRO_NOME))
                     .collect(Collectors.toList());
 
             logger.info("Encontradas {} regionais para sincronizar", regionaisFiltradas.size());
 
-            // 3. Para cada regional filtrada, verificar se já existe e adicionar se não existir
             for (RegionalExternaDTO regionalAPI : regionaisFiltradas) {
                 Regional regionalExistente = regionalRepository.findByNome(regionalAPI.nome());
 
