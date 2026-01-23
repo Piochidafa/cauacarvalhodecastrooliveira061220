@@ -17,7 +17,6 @@ public class TokenService {
     @Value("${api.security.token.secret}")
     private String secret;
 
-    // Token com expiração de 5 minutos
     private static final long TOKEN_EXPIRATION_MINUTES = 5;
 
     public String generateToken(User user) {
