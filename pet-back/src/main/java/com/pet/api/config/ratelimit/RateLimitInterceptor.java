@@ -17,8 +17,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(RateLimitInterceptor.class);
-    private static final int MAX_REQUESTS_PER_MINUTE = 10;
-    
+//    private static final int MAX_REQUESTS_PER_MINUTE = 10;
+    private static final int MAX_REQUESTS_PER_MINUTE = 400;
+
     private final Map<String, UserRequestInfo> requestCounts = new ConcurrentHashMap<>();
 
     @Override

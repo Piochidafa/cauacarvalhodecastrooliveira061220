@@ -7,11 +7,14 @@ import com.pet.api.domain.albumcover.exception.AlbumCoverNotFoundException;
 import com.pet.api.domain.albumcover.model.AlbumCover;
 import com.pet.api.domain.albumcover.repository.AlbumCoverRepository;
 import com.pet.api.shared.exception.ResourceNotFoundException;
+import com.pet.api.shared.service.MinioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -23,14 +26,19 @@ public class AlbumCoverService {
     @Autowired
     AlbumRepository albumRepository;
 
-    public AlbumCover createAlbumCover(AlbumCoverDTO albumCoverDTO){
+    @Autowired
+    MinioService minioService;
+
+    public AlbumCover createAlbumCover(Long albumId, MultipartFile file) throws IOException {
+        String objectKey = minioService.uploadFile(file);
+        
         AlbumCover albumCover = new AlbumCover();
-        if(albumCoverDTO.albumId() != null){
-            Album album = albumRepository.findById(albumCoverDTO.albumId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Álbum com ID " + albumCoverDTO.albumId() + " não encontrado"));
+        if(albumId != null){
+            Album album = albumRepository.findById(albumId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Álbum com ID " + albumId + " não encontrado"));
             albumCover.setAlbum(album);
         }
-        albumCover.setObjectKey(albumCoverDTO.objectKey());
+        albumCover.setObjectKey(objectKey);
         return albumCoverRepository.save(albumCover);
     }
 
@@ -60,6 +68,11 @@ public class AlbumCoverService {
 
     public void deleteAlbumCover(Long id){
         AlbumCover albumCover = getById(id);
+        try {
+            minioService.deleteFile(albumCover.getObjectKey());
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao deletar arquivo do MinIO: " + e.getMessage());
+        }
         albumCoverRepository.delete(albumCover);
     }
 }

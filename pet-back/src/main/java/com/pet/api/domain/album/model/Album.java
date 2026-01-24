@@ -1,5 +1,6 @@
 package com.pet.api.domain.album.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pet.api.domain.artista.model.Artista;
 import com.pet.api.domain.regional.model.Regional;
 import jakarta.persistence.*;
@@ -17,6 +18,7 @@ public class Album {
 
     @ManyToOne
     @JoinColumn(name = "artista_id")
+    @JsonIgnore
     private Artista artista;
 
     @ManyToOne

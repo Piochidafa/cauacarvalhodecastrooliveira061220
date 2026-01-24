@@ -1,6 +1,7 @@
 package com.pet.api.domain.artista.controller;
 
 import com.pet.api.domain.artista.dto.ArtistaDTO;
+import com.pet.api.domain.artista.dto.ArtistaResponseDTO;
 import com.pet.api.domain.artista.model.Artista;
 import com.pet.api.domain.artista.service.ArtistaService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -20,23 +21,26 @@ public class ArtistaController {
     ArtistaService artistaService;
 
     @GetMapping
-    public Page<Artista> retornaTodosArtistasPaginado(Pageable pageable){
-        return artistaService.getAllPaginado(pageable);
+    public Page<ArtistaResponseDTO> retornaTodosArtistasPaginado(Pageable pageable){
+        return artistaService.getAllPaginado(pageable).map(ArtistaResponseDTO::fromArtista);
     }
 
     @PostMapping("/create")
-    public Artista createArtista(@RequestBody ArtistaDTO artista){
-        return artistaService.createArtista(artista);
+    public ArtistaResponseDTO createArtista(@RequestBody ArtistaDTO artista){
+        Artista novoArtista = artistaService.createArtista(artista);
+        return ArtistaResponseDTO.fromArtista(novoArtista);
     }
 
     @GetMapping("/{id}")
-    public Artista getArtistaById(@PathVariable Long id){
-        return artistaService.getById(id);
+    public ArtistaResponseDTO getArtistaById(@PathVariable Long id){
+        Artista artista = artistaService.getById(id);
+        return ArtistaResponseDTO.fromArtista(artista);
     }
 
     @PutMapping("/{id}")
-    public Artista updateArtista(@PathVariable Long id, @RequestBody ArtistaDTO artista){
-        return artistaService.updateArtista(id, artista);
+    public ArtistaResponseDTO updateArtista(@PathVariable Long id, @RequestBody ArtistaDTO artista){
+        Artista artistaAtualizado = artistaService.updateArtista(id, artista);
+        return ArtistaResponseDTO.fromArtista(artistaAtualizado);
     }
 
     @DeleteMapping("/{id}")

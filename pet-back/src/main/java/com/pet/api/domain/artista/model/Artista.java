@@ -1,8 +1,10 @@
 package com.pet.api.domain.artista.model;
 
+import com.pet.api.domain.album.model.Album;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "tb_artista")
@@ -17,6 +19,9 @@ public class Artista {
     private LocalDateTime created_at;
 
     private LocalDateTime updated_at;
+
+    @OneToMany(mappedBy = "artista", fetch = FetchType.LAZY)
+    private List<Album> albuns;
 
     public Long getId() {
         return id;
@@ -50,6 +55,18 @@ public class Artista {
         this.updated_at = updated_at;
     }
 
+    public List<Album> getAlbuns() {
+        return albuns;
+    }
+
+    public void setAlbuns(List<Album> albuns) {
+        this.albuns = albuns;
+    }
+
+    public Integer getQuantidadeAlbuns() {
+        return albuns != null ? albuns.size() : 0;
+    }
+
     @Override
     public String toString() {
         return "Artista{" +
@@ -57,6 +74,7 @@ public class Artista {
                 ", nome='" + nome + '\'' +
                 ", created_at=" + created_at +
                 ", updated_at=" + updated_at +
+                ", quantidadeAlbuns=" + getQuantidadeAlbuns() +
                 '}';
     }
 }
