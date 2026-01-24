@@ -5,7 +5,6 @@ import { Card } from "primereact/card";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { authFacade } from "../../services/facades/authFacade";
-// import "./Login.css";
 
 function Login() {
     const [username, setusername] = useState<string>("");
@@ -28,9 +27,12 @@ function Login() {
 
         try {
             const response = await authFacade.login({ username, password });
-            console.log("Login realizado com sucesso:", response);
+            // console.log("Login realizado com sucesso:", response);
             
-            navigate("/dashboard");
+            // Disparar evento customizado para atualizar o menu
+            window.dispatchEvent(new Event('authChange'));
+            
+            navigate("/");
         } catch (err: any) {
             setError(err.message || "Erro ao realizar login. Tente novamente.");
         } finally {

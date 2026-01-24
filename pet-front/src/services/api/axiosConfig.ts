@@ -29,9 +29,11 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       cookieUtils.remove('refreshToken');
+      window.dispatchEvent(new Event('authChange'));
       window.location.href = '/login';
     }
     return Promise.reject(error);
