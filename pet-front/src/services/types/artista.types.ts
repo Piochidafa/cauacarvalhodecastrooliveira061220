@@ -22,6 +22,7 @@ export interface AlbumCover {
   albumId: number;
   createdAt: string;
   updatedAt: string;
+  url?: string;
 }
 
 export interface PaginatedResponse<T> {
