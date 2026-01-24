@@ -15,9 +15,27 @@ class AlbumCoverService {
     return response.data;
   }
 
-  async getCoverUrl(coverId: number): Promise<string> {
-    const response = await api.get<string>(`/v1/album-cover/${coverId}/url`);
+  async getCoversByAlbumId(albumId: number): Promise<AlbumCover[]> {
+    const response = await api.get<AlbumCover[]>(`/v1/album-cover/album/${albumId}`);
     return response.data;
+  }
+
+  async getCoverByAlbumId(albumId: number): Promise<AlbumCover | null> {
+    try {
+      const covers = await this.getCoversByAlbumId(albumId);
+      return covers.length > 0 ? covers[0] : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async getCoverUrl(coverId: number): Promise<string> {
+    try {
+      const response = await api.get<string>(`/v1/album-cover/${coverId}/url`);
+      return response.data;
+    } catch (error) {
+      return '';
+    }
   }
 
   async deleteCover(coverId: number): Promise<void> {
