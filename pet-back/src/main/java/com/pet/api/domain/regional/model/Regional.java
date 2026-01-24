@@ -12,6 +12,9 @@ public class Regional {
 
     private String nome;
 
+    @Column(nullable = false)
+    private Boolean ativo = true;
+
     public Long getId() {
         return id;
     }
@@ -28,11 +31,20 @@ public class Regional {
         this.nome = nome;
     }
 
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
+
     @Override
     public String toString() {
         return "Regional{" +
                 "id=" + id +
                 ", nome='" + nome + '\'' +
+                ", ativo=" + ativo +
                 '}';
     }
 }
