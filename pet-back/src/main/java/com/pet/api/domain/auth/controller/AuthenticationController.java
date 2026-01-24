@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,14 +44,18 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
-        var usernamePassword = new UsernamePasswordAuthenticationToken(data.username(), data.password());
-        Authentication auth = authenticationManager.authenticate(usernamePassword);
-        
-        User user = (User) auth.getPrincipal();
-        String accessToken = tokenService.generateToken(user);
-        String refreshToken = refreshTokenService.generateRefreshToken(user);
-        
-        return ResponseEntity.ok(new AuthenticationResponseDTO(accessToken, refreshToken, 300L));
+        try {
+            var usernamePassword = new UsernamePasswordAuthenticationToken(data.username(), data.password());
+            Authentication auth = authenticationManager.authenticate(usernamePassword);
+
+            User user = (User) auth.getPrincipal();
+            String accessToken = tokenService.generateToken(user);
+            String refreshToken = refreshTokenService.generateRefreshToken(user);
+
+            return ResponseEntity.ok(new AuthenticationResponseDTO(accessToken, refreshToken, 300L));
+        } catch (AuthenticationException ex) {
+            return ResponseEntity.status(401).build();
+        }
     }
 
     @PostMapping("/refresh")

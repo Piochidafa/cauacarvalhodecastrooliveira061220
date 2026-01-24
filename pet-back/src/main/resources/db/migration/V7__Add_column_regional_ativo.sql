@@ -1,0 +1,6 @@
+ALTER TABLE tb_regional
+    ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE;
+
+UPDATE tb_regional
+SET ativo = TRUE
+WHERE ativo IS NULL;
