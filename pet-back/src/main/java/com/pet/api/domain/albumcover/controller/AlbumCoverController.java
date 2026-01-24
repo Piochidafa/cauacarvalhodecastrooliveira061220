@@ -1,5 +1,6 @@
 package com.pet.api.domain.albumcover.controller;
 
+import com.pet.api.domain.albumcover.dto.AlbumCoverResponseDTO;
 import com.pet.api.domain.albumcover.model.AlbumCover;
 import com.pet.api.domain.albumcover.service.AlbumCoverService;
 import com.pet.api.shared.service.MinioService;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/v1/album-cover")
@@ -77,8 +79,14 @@ public class AlbumCoverController {
     }
 
     @GetMapping("/album/{albumId}")
-    public List<AlbumCover> getAlbumCoversByAlbumId(@PathVariable Long albumId){
-        return albumCoverService.getByAlbumId(albumId);
+    public List<AlbumCoverResponseDTO> getAlbumCoversByAlbumId(@PathVariable Long albumId){
+        return albumCoverService.getByAlbumId(albumId)
+            .stream()
+            .map(cover -> AlbumCoverResponseDTO.fromAlbumCover(
+                cover,
+                minioService.getFileUrl(cover.getObjectKey())
+            ))
+            .collect(Collectors.toList());
     }
 
     @DeleteMapping("/{id}")
