@@ -1,11 +1,11 @@
 package com.pet.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pet.api.dto.AuthenticationDTO;
-import com.pet.api.dto.RegisterDTO;
-import com.pet.api.model.User;
-import com.pet.api.model.enums.UserRole;
-import com.pet.api.repository.UserRepository;
+import com.pet.api.domain.auth.dto.AuthenticationDTO;
+import com.pet.api.domain.auth.dto.RegisterDTO;
+import com.pet.api.domain.auth.model.User;
+import com.pet.api.domain.auth.model.enums.UserRole;
+import com.pet.api.domain.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,8 +40,8 @@ class AuthenticationControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private static final String REGISTER_URL = "/auth/register";
-    private static final String LOGIN_URL = "/auth/login";
+    private static final String REGISTER_URL = "/v1/auth/register";
+    private static final String LOGIN_URL = "/v1/auth/login";
     private static final String USERNAME = "testuser";
     private static final String PASSWORD = "senha123";
 
