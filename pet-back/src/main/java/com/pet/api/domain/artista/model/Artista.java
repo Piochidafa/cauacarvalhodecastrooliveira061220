@@ -1,5 +1,6 @@
 package com.pet.api.domain.artista.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pet.api.domain.album.model.Album;
 import jakarta.persistence.*;
 
@@ -21,6 +22,7 @@ public class Artista {
     private LocalDateTime updated_at;
 
     @OneToMany(mappedBy = "artista", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Album> albuns;
 
     public Long getId() {

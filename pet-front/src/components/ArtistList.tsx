@@ -11,6 +11,7 @@ import artistaFacade from '../services/facades/artistaFacade';
 import albumCoverService from '../services/api/albumCoverService';
 import type { Artista } from '../services/types/artista.types';
 import { Image } from 'primereact/image';
+import ArtistCreateModal from './ArtistCreateModal';
 
 interface PaginatorChangeEvent {
   page: number;
@@ -28,10 +29,14 @@ function ArtistList() {
   const [rows, setRows] = useState(12);
   const [totalRecords, setTotalRecords] = useState(0);
   const [coverUrls, setCoverUrls] = useState<Record<number, string>>({});
+  const [createDialogVisible, setCreateDialogVisible] = useState(false);
+  const [newArtistName, setNewArtistName] = useState('');
+  const [creatingArtist, setCreatingArtist] = useState(false);
 
   useEffect(() => {
     const loadArtistas = async () => {
       try {
+        console.log('Carregando artistas com página:', page, 'linhas:', rows);
         await artistaFacade.loadArtistas(page, rows, 'nome', sortOrder);
       } catch (err) {
         toast.error('Erro ao carregar artistas');
@@ -41,15 +46,22 @@ function ArtistList() {
   }, [page, rows, sortOrder]);
 
   useEffect(() => {
+    console.log('Subscribe effect mounted');
     const artistasSubscription = artistaFacade.artistas$.subscribe((newArtistas) => {
+      console.log('Artistas atualizados:', newArtistas);
       setArtistas(newArtistas);
       loadCoverUrls(newArtistas);
     });
-    const loadingSubscription = artistaFacade.loading$.subscribe(setLoading);
+    const loadingSubscription = artistaFacade.loading$.subscribe((loadingState) => {
+      console.log('Loading state:', loadingState);
+      setLoading(loadingState);
+    });
     const errorSubscription = artistaFacade.error$.subscribe((error) => {
+      console.log('Error:', error);
       if (error) toast.error(error);
     });
     const paginationSubscription = artistaFacade.pagination$.subscribe((pagination) => {
+      console.log('Pagination:', pagination);
       setTotalRecords(pagination.totalElements);
     });
 
@@ -67,15 +79,16 @@ function ArtistList() {
     for (const artista of artistasData) {
       if (artista.albuns && artista.albuns.length > 0) {
         for (const album of artista.albuns.slice(0, 4)) {
-          try {
-            const covers = await albumCoverService.getCoversByAlbumId(album.id);
-            if (covers && covers.length > 0) {
-              const first = covers[0];
-              const url = first.url || (first.id ? await albumCoverService.getCoverUrl(first.id) : '');
+          // Usa a primeira capa que já vem do backend
+          if (album.capas && album.capas.length > 0) {
+            const firstCover = album.capas[0];
+            try {
+              // Se a URL já vem na capa, usa direto; senão busca pelo ID
+              const url = firstCover.url || (firstCover.id ? await albumCoverService.getCoverUrl(firstCover.id) : '');
               if (url) urls[album.id] = url;
+            } catch (err) {
+              console.error('Erro ao carregar URL da capa do álbum', album.id, ':', err);
             }
-          } catch (err) {
-            // Ignorar erro se capa não existir
           }
         }
       }
@@ -94,6 +107,26 @@ function ArtistList() {
     }
   };
 
+  const handleCreateArtist = async () => {
+    if (!newArtistName.trim()) {
+      toast.error('Nome do artista é obrigatório');
+      return;
+    }
+
+    setCreatingArtist(true);
+    try {
+      await artistaFacade.createArtista({ nome: newArtistName.trim() });
+      toast.success('Artista criado com sucesso!');
+      setCreateDialogVisible(false);
+      setNewArtistName('');
+      await loadArtistas();
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao criar artista');
+    } finally {
+      setCreatingArtist(false);
+    }
+  };
+
   const handleRowClick = (artista: Artista) => {
     navigate(`/artista/${artista.id}`);
   };
@@ -109,37 +142,54 @@ function ArtistList() {
   };
 
   const header = (
-    <div className="flex flex-column gap-2">
+    <div className="flex flex-column gap-2 mt-4 ">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingLeft: '1vh',
+      }}>
       <div className="flex gap-2 align-items-center flex-wrap">
-        <InputText
-          placeholder="Buscar artista..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && loadArtistas()}
-          style={{ flex: '1 1 250px' }}
-        />
         <Button
-          label="Buscar"
-          icon="pi pi-search"
-          onClick={loadArtistas}
-        />
+          label="Novo Artista"
+          icon="pi pi-plus"
+          onClick={() => setCreateDialogVisible(true)}
+          className='gap-2'
+          style={{
+            padding: '0.6vh'
+          }}
+          />
       </div>
       <div className="flex gap-2 align-items-center flex-wrap">
         <Dropdown
           value={sortOrder}
           onChange={(e) => setSortOrder(e.value)}
+          style={{
+            height: '3.0vh',
+            padding: '0.5vh'
+          }}
           options={sortOptions}
           optionLabel="label"
           optionValue="value"
           placeholder="Ordenar..."
-        />
+          />
+        <InputText
+          placeholder="Buscar artista..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ height: '3.2vh' }}
+          />
         <Button
-          label="Novo Artista"
-          icon="pi pi-plus"
-          onClick={() => navigate('/artista/novo')}
-          className=""
-        />
+          label="Buscar"
+          icon="pi pi-search"
+          style={{
+            padding: 6
+          }}
+          onClick={loadArtistas}
+          />
       </div>
+
+     </div>
     </div>
   );
 
@@ -152,10 +202,10 @@ function ArtistList() {
           </div>
         ) : (
           <>
-            <div className="mb-4">{header}</div>
+            <div className="mb-2">{header}</div>
             <div className="grid" style={{ flex: 1, overflow: 'auto' }}>
               {artistas.map((artista) => (
-                <div key={artista.id} className="col-12 md:col-6 lg:col-4 xl:col-3">
+                <div key={artista.id} className="col-12 md:col-5 lg:col-3 xl:col-3">
                   <Card
                     className="cursor-pointer hover:shadow-4 border-2 p-3 transition-duration-200 h-full"
                     onClick={() => handleRowClick(artista)}
@@ -172,27 +222,45 @@ function ArtistList() {
                       </div>
 
                       {artista.albuns && artista.albuns.length > 0 ? (
-                        <div className="flex-grow-1" style={{ minHeight: '0', overflow: 'hidden' }}>
+                        <div className="flex-grow-1 flex flex-column" style={{ minHeight: '0', overflow: 'hidden' }}>
                           <span className="text-sm font-semibold block mb-2">
-                            Álbuns ({artista.quantidadeAlbuns || 0})
+                            ( {artista.quantidadeAlbuns || 0} ) {artista.quantidadeAlbuns <= 1 ? "Album" : "Albuns"}
                           </span>
-                          <div className="grid gap-1">
+                          <div
+                            className="gap-2 align-content-center justify-content-center"
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(2, 1fr)',
+                              gridAutoRows: '1fr',
+                              width: '100%',
+                              justifyItems: 'center'
+                            }}
+                          >
                             {artista.albuns.slice(0, 4).map((album) => (
-                              <div key={album.id} className="col-6">
+                              <div key={album.id} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                                 <div
-                                  className="border-round overflow-hidden"
+                                  className="border-round overflow-hidden border-3 border-round-sm "
                                   style={{
                                     backgroundColor: '#f0f0f0',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center'
+                                    justifyContent: 'center',
+                                    width: '100%',
+                                    margin: '0 auto',
+                                    aspectRatio: '1.4 / 1',
+                                    height: 'auto'
                                   }}
                                 >
                                   {coverUrls[album.id] ? (
-                                    <img
+                                    <Image
                                       src={coverUrls[album.id]}
                                       alt={album.nome}
                                       style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'contain'
+                                      }}
+                                      imageStyle={{
                                         width: '100%',
                                         height: '100%',
                                         objectFit: 'cover'
@@ -203,7 +271,7 @@ function ArtistList() {
                                       className="flex flex-column align-items-center justify-content-center"
                                       style={{ width: '100%', height: '100%' }}
                                     >
-                                      <i className="pi pi-image text-lg text-surface-400"></i>
+                                      <i className="pi pi-question-circle text-lg text-surface-400"></i>
                                     </div>
                                   )}
                                 </div>
@@ -212,22 +280,28 @@ function ArtistList() {
                           </div>
                         </div>
                       ) : (
+                        <div>
+                          <span className="text-sm font-semibold block mb-2">
+                            ( {artista.quantidadeAlbuns || 0} ) Albuns
+                          </span>
                         <div className="flex-grow-1 w-full flex flex-column align-items-center justify-content-center">
                           <div
                             style={{
                               backgroundColor: '#e8e8e8',
                               color: '#999',
                               width: '100%',
-                              height: '25vh',
+                              height: '30vh',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               borderRadius: '0.5rem'
                             }}
-                          >
-                            <i className="pi pi-question-circle text-5xl"></i>
+                            >
+                            
+                            <i className=" text-bold text-2xl">Nenhum álbum encontrado</i>
                           </div>
                         </div>
+                      </div>
                       )}
 
                     </div>
@@ -257,6 +331,20 @@ function ArtistList() {
           </>
         )}
       </Card>
+
+      <ArtistCreateModal
+        visible={createDialogVisible}
+        value={newArtistName}
+        loading={creatingArtist}
+        onChange={setNewArtistName}
+        onCancel={() => {
+          if (!creatingArtist) {
+            setCreateDialogVisible(false);
+            setNewArtistName('');
+          }
+        }}
+        onSave={handleCreateArtist}
+      />
     </div>
   );
 }

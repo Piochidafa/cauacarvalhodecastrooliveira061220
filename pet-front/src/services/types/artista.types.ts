@@ -1,3 +1,5 @@
+import type { Regional } from "./regional.types";
+
 export interface Artista {
   id: number;
   nome: string;
@@ -10,10 +12,11 @@ export interface Artista {
 export interface Album {
   id: number;
   nome: string;
-  artistaId: number;
-  regionalId: number;
+  artista: Artista;
+  regional: Regional;
   createdAt: string;
   updatedAt: string;
+  capas?: AlbumCover[];
 }
 
 export interface AlbumCover {

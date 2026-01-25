@@ -25,6 +25,10 @@ public class ArtistaService {
         return artistaRepository.findAll(pageable);
     }
 
+    public Page<Artista> searchByNome(String nome, Pageable pageable){
+        return artistaRepository.findByNomeContainingIgnoreCase(nome, pageable);
+    }
+
     public Artista getByName(String nome){
         return artistaRepository.getByNome(nome);
     }

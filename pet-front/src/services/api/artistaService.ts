@@ -14,18 +14,15 @@ class ArtistaService {
   }
 
   async searchArtistas(nome: string, page: number = 0, size: number = 10): Promise<PaginatedResponse<Artista>> {
-    const response = await api.get<PaginatedResponse<Artista>>('/v1/artista', {
+    const response = await api.get<PaginatedResponse<Artista>>('/v1/artista/buscar', {
       params: {
+        nome,
         page,
         size,
         sort: `nome,asc`,
       },
     });
-    // Filtrar pelo nome localmente (se a API não tiver endpoint específico)
-    return {
-      ...response.data,
-      content: response.data.content.filter(a => a.nome.toLowerCase().includes(nome.toLowerCase())),
-    };
+    return response.data;
   }
 
   async getArtistaById(id: number): Promise<Artista> {
