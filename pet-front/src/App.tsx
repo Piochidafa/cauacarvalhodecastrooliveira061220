@@ -1,16 +1,17 @@
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { Menubar } from 'primereact/menubar';
 import { ProgressSpinner } from 'primereact/progressspinner';
-import Login from './pages/Login/Login';
 import ProtectedRoute from './components/ProtectedRoute';
-import ArtistList from './components/ArtistList';
-import ArtistDetail from './components/ArtistDetail';
-import ArtistForm from './components/ArtistForm';
-import AlbumForm from './components/AlbumForm';
+import { authFacade } from './services/facades/authFacade';
 
-// Lazy loading para páginas menos frequentes
+// Lazy loading
+const Login = lazy(() => import('./pages/Login/Login'));
+const ArtistList = lazy(() => import('./components/ArtistList'));
+const ArtistDetail = lazy(() => import('./components/ArtistDetail'));
+const ArtistForm = lazy(() => import('./components/ArtistForm'));
+const AlbumForm = lazy(() => import('./components/AlbumForm'));
 const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'));
 const TestRefresh = lazy(() => import('./pages/TestRefresh/TestRefresh'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
@@ -26,6 +27,7 @@ function LoadingFallback() {
 function AppContent() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('accessToken'));
+  const lastNotifiedExpiryRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Verificar mudanças no localStorage
@@ -48,6 +50,81 @@ function AppContent() {
       window.removeEventListener('focus', handleAuthChange);
     };
   }, []);
+
+  const computeExpiry = useCallback(() => {
+    const raw = localStorage.getItem('accessTokenExpiresAt');
+    if (!raw) {
+      return;
+    }
+
+    const expiresAt = Number(raw);
+    if (!Number.isFinite(expiresAt)) {
+      return;
+    }
+
+    const remainingMs = expiresAt - Date.now();
+    if (remainingMs <= 0) {
+      return;
+    }
+
+    const remainingMinutes = Math.max(1, Math.ceil(remainingMs / 60000));
+    const shouldNotify = remainingMs <= 60 * 1000;
+
+    if (shouldNotify && lastNotifiedExpiryRef.current !== expiresAt) {
+      lastNotifiedExpiryRef.current = expiresAt;
+      toast.custom((t) => (
+        <div
+          style={{
+            background: '#fff7ed',
+            color: '#9a3412',
+            border: '1px solid #fed7aa',
+            padding: '0.75rem 1rem',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}
+        >
+          <span>Sessão expira em {remainingMinutes} min.</span>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              handleRefreshSession();
+            }}
+            style={{
+              background: '#f97316',
+              color: '#fff',
+              border: 'none',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            Renovar agora
+          </button>
+        </div>
+      ), { duration: 3000 });
+    }
+  }, []);
+
+  useEffect(() => {
+    computeExpiry();
+    const intervalId = window.setInterval(computeExpiry, 30000);
+    window.addEventListener('authChange', computeExpiry);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('authChange', computeExpiry);
+    };
+  }, [computeExpiry]);
+
+  const handleRefreshSession = async () => {
+    try {
+      await authFacade.refreshToken();
+      window.dispatchEvent(new Event('authChange'));
+    } catch (error) {
+      console.error('Erro ao renovar sessão:', error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -99,7 +176,7 @@ function AppContent() {
           }}
         />
         <Menubar
-         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1vh' }}
          model={menuItems} 
          start={<Link to="/" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>SoundBoard</Link>}
          end={

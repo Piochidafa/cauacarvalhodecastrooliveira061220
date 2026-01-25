@@ -1,4 +1,4 @@
-import api from '../api/axiosConfig';
+import api, { refreshApi } from '../api/axiosConfig';
 import type { LoginRequest, LoginResponse } from '../types/auth.types';
 import { cookieUtils } from '../../utils/cookies';
 
@@ -10,6 +10,10 @@ export const authFacade = {
       
       if (response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
+      }
+      if (response.data.expiresIn) {
+        const expiresAt = Date.now() + response.data.expiresIn * 1000;
+        localStorage.setItem('accessTokenExpiresAt', expiresAt.toString());
       }
       
       if (response.data.refreshToken) {
@@ -33,6 +37,7 @@ export const authFacade = {
       console.error('Erro ao realizar logout:', error);
     } finally {
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('accessTokenExpiresAt');
       cookieUtils.remove('refreshToken');
     }
   },
@@ -51,14 +56,14 @@ export const authFacade = {
 
   refreshToken: async (): Promise<LoginResponse> => {
     try {
-      const response = await api.post<LoginResponse>('/v1/auth/refresh');
+      const response = await refreshApi.post<LoginResponse>('/v1/auth/refresh');
       
       if (response.data.accessToken) {
         localStorage.setItem('accessToken', response.data.accessToken);
       }
-      
-      if (response.data.refreshToken) {
-        cookieUtils.set('refreshToken', response.data.refreshToken, 7);
+      if (response.data.expiresIn) {
+        const expiresAt = Date.now() + response.data.expiresIn * 1000;
+        localStorage.setItem('accessTokenExpiresAt', expiresAt.toString());
       }
       
       return response.data;
