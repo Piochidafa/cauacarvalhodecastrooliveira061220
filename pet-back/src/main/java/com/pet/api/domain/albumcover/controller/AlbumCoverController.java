@@ -1,6 +1,7 @@
 package com.pet.api.domain.albumcover.controller;
 
 import com.pet.api.domain.albumcover.dto.AlbumCoverResponseDTO;
+import com.pet.api.domain.albumcover.dto.AlbumCoverDTO;
 import com.pet.api.domain.albumcover.model.AlbumCover;
 import com.pet.api.domain.albumcover.service.AlbumCoverService;
 import com.pet.api.shared.service.MinioService;
@@ -54,6 +55,12 @@ public class AlbumCoverController {
     @GetMapping("/{id}")
     public AlbumCover getAlbumCoverById(@PathVariable Long id){
         return albumCoverService.getById(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AlbumCover> updateAlbumCover(@PathVariable Long id, @RequestBody AlbumCoverDTO albumCoverDTO){
+        AlbumCover albumCover = albumCoverService.updateAlbumCover(id, albumCoverDTO);
+        return ResponseEntity.ok(albumCover);
     }
 
     @GetMapping("/{id}/download")

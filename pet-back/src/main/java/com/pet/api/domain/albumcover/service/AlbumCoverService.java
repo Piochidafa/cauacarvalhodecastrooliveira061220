@@ -42,6 +42,17 @@ public class AlbumCoverService {
         return albumCoverRepository.save(albumCover);
     }
 
+    public AlbumCover createAlbumCoverWithKey(Long albumId, String objectKey) {
+        AlbumCover albumCover = new AlbumCover();
+        if(albumId != null){
+            Album album = albumRepository.findById(albumId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Álbum com ID " + albumId + " não encontrado"));
+            albumCover.setAlbum(album);
+        }
+        albumCover.setObjectKey(objectKey);
+        return albumCoverRepository.save(albumCover);
+    }
+
     public Page<AlbumCover> getAllPaginado(Pageable pageable){
         return albumCoverRepository.findAll(pageable);
     }

@@ -1,5 +1,6 @@
 package com.pet.api.domain.albumcover.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pet.api.domain.album.model.Album;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class AlbumCover {
 
     @ManyToOne
     @JoinColumn(name = "album_id")
+    @JsonIgnore
     private Album album;
 
     @Column(name = "object_key")

@@ -6,11 +6,10 @@ import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { FileUpload } from 'primereact/fileupload';
 import { Client } from '@stomp/stompjs';
-import artistaFacade from '../services/facades/artistaFacade';
+import albumCoverService from '../services/api/albumCoverService';
 import regionalFacade from '../services/facades/regionalFacade';
-import type { CreateAlbumRequest, Artista, Album } from '../services/types/artista.types';
+import type { CreateAlbumRequest, Album } from '../services/types/artista.types';
 import type { Regional } from '../services/types/regional.types';
-import { useParams } from 'react-router-dom';
 
 interface AlbumModalProps {
   visible: boolean;
@@ -28,10 +27,40 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   });
   const [regionals, setRegionals] = useState<Regional[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const fileRef = useRef<File | null>(null);
   const stompClient = useRef<Client | null>(null);
   const [connected, setConnected] = useState(false);
+  const currentAlbumId = useRef<number | undefined>(album?.id);
 
+  const uploadCoverIfNeeded = async (albumId: number | undefined, replaceExisting: boolean) => {
+    const pendingFile = fileRef.current;
+    if (!pendingFile) return;
+    if (!albumId) {
+      toast.error('Não foi possível enviar a capa: álbum sem ID');
+      return;
+    }
+
+    try {
+      setUploadingCover(true);
+      if (replaceExisting) {
+        const existingCovers = await albumCoverService.getCoversByAlbumId(albumId);
+        await Promise.all(existingCovers.map((cover) => albumCoverService.deleteCover(cover.id)));
+      }
+      await albumCoverService.uploadCover(pendingFile, albumId);
+      toast.success('Capa enviada com sucesso!');
+      setFile(null);
+      setPreviewUrl(null);
+      fileRef.current = null;
+    } catch (error) {
+      console.error('Erro ao enviar capa:', error);
+      toast.error('Erro ao enviar capa do álbum');
+    } finally {
+      setUploadingCover(false);
+    }
+  };
 
   useEffect(() => {
     // Conectar ao WebSocket
@@ -41,20 +70,22 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
       connectHeaders: {
         Authorization: token ? `Bearer ${token}` : '',
       },
+      debug: () => {},
       onConnect: () => {
-        console.log('Conectado ao STOMP');
         setConnected(true);
 
         // Inscrever-se em tópicos
         client.subscribe('/topic/album/created', (message) => {
           const response = JSON.parse(message.body);
-          console.log('Álbum criado:', response);
           if (response.action === 'CREATE_SUCCESS') {
-            toast.success('Álbum criado com sucesso!');
-            setLoading(false);
-            onSuccess();
-            onHide();
-          } else if (response.action === 'CREATE_ERROR') {
+            (async () => {
+              await uploadCoverIfNeeded(response?.data?.id, false);
+              toast.success('Álbum criado com sucesso!');
+              setLoading(false);
+              onSuccess();
+              onHide();
+            })();
+          } else if (response.action === 'ERROR') {
             toast.error(response.message || 'Erro ao criar álbum');
             setLoading(false);
           }
@@ -62,25 +93,17 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
 
         client.subscribe('/topic/album/updated', (message) => {
           const response = JSON.parse(message.body);
-          console.log('Álbum atualizado:', response);
           if (response.action === 'UPDATE_SUCCESS') {
-            toast.success('Álbum atualizado com sucesso!');
-            setLoading(false);
-            onSuccess();
-            onHide();
-          } else if (response.action === 'UPDATE_ERROR') {
+            (async () => {
+              await uploadCoverIfNeeded(response?.data?.id ?? currentAlbumId.current, true);
+              toast.success('Álbum atualizado com sucesso!');
+              onSuccess();
+              onHide();
+              setLoading(false);
+            })();
+          } else if (response.action === 'ERROR') {
             toast.error(response.message || 'Erro ao atualizar álbum');
             setLoading(false);
-          }
-        });
-
-        client.subscribe('/topic/album/cover/uploaded', (message) => {
-          const response = JSON.parse(message.body);
-          console.log('Capa enviada:', response);
-          if (response.action === 'COVER_UPLOAD_SUCCESS') {
-            toast.success('Capa enviada com sucesso!');
-          } else if (response.action === 'COVER_UPLOAD_ERROR') {
-            toast.error(response.message || 'Erro ao enviar capa');
           }
         });
       },
@@ -104,6 +127,10 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   }, []);
 
   useEffect(() => {
+    fileRef.current = file;
+  }, [file]);
+
+  useEffect(() => {
     loadRegionals();
   }, []);
 
@@ -116,12 +143,15 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
 
   useEffect(() => {
     if (album) {
+      currentAlbumId.current = album.id;
+      
       setFormData({
         nome: album.nome,
-        artistaId: album.artistaId,
-        regionalId: album.regionalId,
+        artistaId: album.artista.id,
+        regionalId: album.regional.id,
       });
     } else {
+      currentAlbumId.current = undefined;
       setFormData({
         nome: '',
         artistaId: artistaId,
@@ -131,12 +161,37 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
     }
   }, [album, visible, artistaId]);
 
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [file]);
+
   const loadRegionals = async () => {
     await regionalFacade.loadRegionals(0, 100);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validações
+    if (!formData.nome?.trim()) {
+      toast.error('Nome do álbum é obrigatório');
+      return;
+    }
+
+    if (!formData.regionalId) {
+      toast.error('Regional é obrigatório');
+      return;
+    }
 
     if (!connected || !stompClient.current) {
       toast.error('WebSocket não conectado');
@@ -146,58 +201,51 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
     setLoading(true);
 
     try {
-      if (album) {
-        // Atualizar álbum via WebSocket
+      const payload = {
+        nome: formData.nome,
+        artistaId: formData.artistaId,
+        regionalId: formData.regionalId
+      };
+
+      if (currentAlbumId.current) {
         stompClient.current.publish({
-          destination: `/app/album/update/${album.id}`,
-          body: JSON.stringify(formData)
+          destination: `/app/album/update/${currentAlbumId.current}`,
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload)
         });
       } else {
-        // Criar álbum via WebSocket
         stompClient.current.publish({
           destination: '/app/album/create',
-          body: JSON.stringify(formData)
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload)
         });
       }
-
-      // Upload de capa via WebSocket (se houver)
-      if (file && album) {
-        await uploadCoverViaWebSocket(album.id, file);
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao processar requisição');
+      
+    } catch (error) {
+      console.error('Erro ao preparar dados:', error);
+      toast.error('Erro ao preparar dados do álbum');
       setLoading(false);
     }
-  };
-
-  const uploadCoverViaWebSocket = async (albumId: number, file: File) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (stompClient.current && stompClient.current.connected) {
-          const base64Data = (reader.result as string).split(',')[1];
-          stompClient.current.publish({
-            destination: `/app/album/cover/upload/${albumId}`,
-            body: JSON.stringify({
-              filename: file.name,
-              data: base64Data,
-              contentType: file.type
-            })
-          });
-          resolve(true);
-        } else {
-          reject(new Error('WebSocket não conectado'));
-        }
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
   };
 
   const handleFileSelect = (event: any) => {
     const files = event.files;
     if (files && files.length > 0) {
       setFile(files[0]);
+    } else {
+      console.warn('Nenhum arquivo encontrado no event');
+    }
+  };
+
+  const handleCustomUpload = (event: any) => {
+    const files = event.files;
+    if (files && files.length > 0) {
+      setFile(files[0]);
+      toast.success('Arquivo pronto para envio');
+    } else if (file) {
+      toast.success('Arquivo pronto para envio');
+    } else {
+      toast.error('Selecione uma imagem antes de enviar');
     }
   };
 
@@ -208,14 +256,15 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
         icon="pi pi-times"
         onClick={onHide}
         className="p-button-text"
-        disabled={loading}
+        disabled={loading || uploadingCover}
       />
       <Button
         label="Salvar"
         icon="pi pi-check"
-        onClick={handleSubmit}
-        loading={loading}
-        disabled={!connected}
+        type="submit"
+        form="album-form"
+        loading={loading || uploadingCover}
+        disabled={!connected || loading || uploadingCover}
       />
     </div>
   );
@@ -235,7 +284,7 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form id="album-form" onSubmit={handleSubmit}>
         <div className="field">
           <label htmlFor="nome">Nome do Álbum *</label>
           <InputText
@@ -247,22 +296,6 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
             disabled={loading}
           />
         </div>
-
-        {/* <div className="field">
-          <label htmlFor="artista">Artista *</label>
-          <Dropdown
-            id="artista"
-            value={formData.artistaId}
-            onChange={(e) => setFormData({ ...formData, artistaId: e.value })}
-            options={artistas}
-            optionLabel="nome"
-            optionValue="id"
-            placeholder="Selecionar artista"
-            className="w-full"
-            required
-            disabled={loading}
-          />
-        </div> */}
 
         <div className="field">
           <label htmlFor="regional">Regional *</label>
@@ -283,16 +316,28 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
         <div className="field">
           <label htmlFor="capa">Capa do Álbum</label>
           <FileUpload
+            mode="advanced"
             name="capa"
             accept="image/*"
             maxFileSize={10000000}
             onSelect={handleFileSelect}
             auto={false}
-            chooseLabel="Escolher arquivo"
-            cancelLabel="Cancelar"
+            chooseLabel="Adicionar imagem"
             uploadLabel="Upload"
-            disabled={loading}
+            cancelLabel="Remover"
+            disabled={loading || uploadingCover}
+            customUpload
+            uploadHandler={handleCustomUpload}
           />
+          {previewUrl && (
+            <div className="mt-3">
+              <img
+                src={previewUrl}
+                alt="Pré-visualização da capa"
+                style={{ maxWidth: '100%', borderRadius: '6px' }}
+              />
+            </div>
+          )}
           {file && (
             <small className="text-500">Arquivo selecionado: {file.name}</small>
           )}

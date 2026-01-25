@@ -72,6 +72,26 @@ public class MinioService {
         }
     }
 
+    public String uploadFileFromBytes(byte[] bytes, String fileName) throws IOException {
+        String objectKey = UUID.randomUUID().toString() + "_" + fileName;
+        
+        try {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectKey)
+                            .stream(new java.io.ByteArrayInputStream(bytes), bytes.length, -1)
+                            .contentType("image/*")
+                            .build()
+            );
+            logger.info("Arquivo '{}' enviado com sucesso via bytes", objectKey);
+            return objectKey;
+        } catch (Exception e) {
+            logger.error("Erro ao fazer upload do arquivo: {}", e.getMessage(), e);
+            throw new IOException("Erro ao fazer upload do arquivo: " + e.getMessage(), e);
+        }
+    }
+
     public InputStream downloadFile(String objectKey) throws IOException {
         try {
             return minioClient.getObject(

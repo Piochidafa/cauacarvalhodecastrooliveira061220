@@ -1,10 +1,13 @@
 package com.pet.api.domain.album.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.pet.api.domain.albumcover.model.AlbumCover;
 import com.pet.api.domain.artista.model.Artista;
 import com.pet.api.domain.regional.model.Regional;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tb_album")
@@ -18,7 +21,6 @@ public class Album {
 
     @ManyToOne
     @JoinColumn(name = "artista_id")
-    @JsonIgnore
     private Artista artista;
 
     @ManyToOne
@@ -30,6 +32,9 @@ public class Album {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "album", fetch = FetchType.EAGER)
+    private List<AlbumCover> capas = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -77,6 +82,14 @@ public class Album {
 
     public void setArtista(Artista artista) {
         this.artista = artista;
+    }
+
+    public List<AlbumCover> getCapas() {
+        return capas;
+    }
+
+    public void setCapas(List<AlbumCover> capas) {
+        this.capas = capas;
     }
 
     @PrePersist

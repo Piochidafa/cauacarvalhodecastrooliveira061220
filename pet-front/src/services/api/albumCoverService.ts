@@ -38,6 +38,14 @@ class AlbumCoverService {
     }
   }
 
+  async updateCover(coverId: number, albumId: number, objectKey: string): Promise<AlbumCover> {
+    const response = await api.put<AlbumCover>(`/v1/album-cover/${coverId}`, {
+      albumId,
+      objectKey,
+    });
+    return response.data;
+  }
+
   async deleteCover(coverId: number): Promise<void> {
     await api.delete(`/v1/album-cover/${coverId}`);
   }
