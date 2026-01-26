@@ -118,4 +118,13 @@ public class AlbumController {
             Pageable pageable){
         return albumService.getAlbumsByArtistaNome(nomeArtista, pageable);
     }
+
+    @GetMapping("/buscar-por-artista")
+    @Operation(summary = "Busca álbuns por nome filtrando por artista")
+    public Page<Album> getAlbumsByNomeAndArtistaId(
+            @RequestParam String nome,
+            @RequestParam Long artistaId,
+            Pageable pageable){
+        return albumService.getAlbumsByNomeAndArtistaId(nome, artistaId, pageable);
+    }
 }

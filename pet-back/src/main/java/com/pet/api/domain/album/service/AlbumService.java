@@ -90,4 +90,8 @@ public class AlbumService {
     public Page<Album> getAlbumsByArtistaNome(String nomeArtista, Pageable pageable){
         return albumRepository.findByArtistaNomeContaining(nomeArtista, pageable);
     }
+
+    public Page<Album> getAlbumsByNomeAndArtistaId(String nome, Long artistaId, Pageable pageable){
+        return albumRepository.findByNomeContainingIgnoreCaseAndArtista_Id(nome, artistaId, pageable);
+    }
 }

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 public interface AlbumRepository extends JpaRepository<Album, Long> {
     
     Page<Album> findByArtista_Id(Long artistaId, Pageable pageable);
+
+    Page<Album> findByNomeContainingIgnoreCaseAndArtista_Id(String nome, Long artistaId, Pageable pageable);
     
     @Query("SELECT a FROM Album a WHERE LOWER(a.artista.nome) LIKE LOWER(CONCAT('%', :nomeArtista, '%'))")
     Page<Album> findByArtistaNomeContaining(@Param("nomeArtista") String nomeArtista, Pageable pageable);
