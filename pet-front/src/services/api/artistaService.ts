@@ -13,13 +13,19 @@ class ArtistaService {
     return response.data;
   }
 
-  async searchArtistas(nome: string, page: number = 0, size: number = 10): Promise<PaginatedResponse<Artista>> {
+  async searchArtistas(
+    nome: string,
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'nome',
+    sortDir: string = 'asc'
+  ): Promise<PaginatedResponse<Artista>> {
     const response = await api.get<PaginatedResponse<Artista>>('/v1/artista/buscar', {
       params: {
         nome,
         page,
         size,
-        sort: `nome,asc`,
+        sort: `${sortBy},${sortDir}`,
       },
     });
     return response.data;

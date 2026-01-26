@@ -44,11 +44,17 @@ class ArtistFacade {
     }
   }
 
-  async searchArtistas(nome: string, page: number = 0, size: number = 10): Promise<void> {
+  async searchArtistas(
+    nome: string,
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'nome',
+    sortDir: string = 'asc'
+  ): Promise<void> {
     try {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
-      const response = await artistaService.searchArtistas(nome, page, size);
+      const response = await artistaService.searchArtistas(nome, page, size, sortBy, sortDir);
       this.artistasSubject.next(response.content);
       this.paginationSubject.next({
         currentPage: page,

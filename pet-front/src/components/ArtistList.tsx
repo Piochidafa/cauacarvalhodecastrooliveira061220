@@ -32,17 +32,22 @@ function ArtistList() {
   const [createDialogVisible, setCreateDialogVisible] = useState(false);
   const [newArtistName, setNewArtistName] = useState('');
   const [creatingArtist, setCreatingArtist] = useState(false);
+  const [artistActionsEnabled, setArtistActionsEnabled] = useState(true);
 
   useEffect(() => {
-    const loadArtistas = async () => {
+    const fetchArtistas = async () => {
       try {
         console.log('Carregando artistas com página:', page, 'linhas:', rows);
-        await artistaFacade.loadArtistas(page, rows, 'nome', sortOrder);
+        if (searchTerm.trim()) {
+          await artistaFacade.searchArtistas(searchTerm, page, rows, 'nome', sortOrder);
+        } else {
+          await artistaFacade.loadArtistas(page, rows, 'nome', sortOrder);
+        }
       } catch (err) {
         toast.error('Erro ao carregar artistas');
       }
     };
-    loadArtistas();
+    fetchArtistas();
   }, [page, rows, sortOrder]);
 
   useEffect(() => {
@@ -99,11 +104,24 @@ function ArtistList() {
 
   const loadArtistas = async () => {
     if (searchTerm.trim()) {
-      await artistaFacade.searchArtistas(searchTerm, 0, rows);
+      await artistaFacade.searchArtistas(searchTerm, 0, rows, 'nome', sortOrder);
       setPage(0);
     } else {
       await artistaFacade.loadArtistas(0, rows, 'nome', sortOrder);
       setPage(0);
+    }
+  };
+
+  const handleDeleteArtist = async (artista: Artista) => {
+    const confirmed = window.confirm('Deseja excluir este artista?');
+    if (!confirmed) return;
+
+    try {
+      await artistaFacade.deleteArtista(artista.id);
+      toast.success('Artista excluído com sucesso!');
+      await loadArtistas();
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao excluir artista');
     }
   };
 
@@ -159,6 +177,15 @@ function ArtistList() {
             padding: '0.6vh'
           }}
           />
+        <Button
+          label={artistActionsEnabled ? 'Ocultar ações' : 'Habilitar ações'}
+          icon={artistActionsEnabled ? 'pi pi-eye-slash' : 'pi pi-cog'}
+          onClick={() => setArtistActionsEnabled((prev) => !prev)}
+          className="p-button-outlined"
+          style={{
+            padding: '0.6vh'
+          }}
+        />
       </div>
       <div className="flex gap-2 align-items-center flex-wrap">
         <Dropdown
@@ -202,27 +229,46 @@ function ArtistList() {
           </div>
         ) : (
           <>
+          
             <div className="mb-2">{header}</div>
             <div className="grid" style={{ flex: 1, overflow: 'auto' }}>
               {artistas.map((artista) => (
                 <div key={artista.id} className="col-12 md:col-5 lg:col-3 xl:col-3">
                   <Card
-                    className="cursor-pointer hover:shadow-4 border-2 p-3 transition-duration-200 h-full"
+                    className=" cursor-pointer hover:shadow-4 border-2 p-3 transition-duration-200 h-full card-hover"
                     onClick={() => handleRowClick(artista)}
                     style={{ display: 'flex', flexDirection: 'column', minHeight: '0' }}
                   >
                     <div className="flex flex-column h-full" style={{ minHeight: '0', gap: '0.5rem' }}>
-
                       <div className="flex align-items-center gap-3 pb-4" style={{ borderBottom: '1px solid #ddd' }}>
                         <i className="pi pi-user text-2xl text-primary"></i>
                         <div className="flex flex-column flex-grow-1 min-w-0">
-                          <span className="font-bold text-lg" style={{ wordBreak: 'break-word' }}>{artista.nome}</span>
+                          <div className='flex flex-row justify-content-between align-items-center '>
+
+                            <span className=" pointer font-bold text-lg pt-2" style={{ wordBreak: 'break-word' }}>{artista.nome}</span>
+                          
+                          {artistActionsEnabled && (
+                            <div className="flex gap-2 align-items-center">
+                              <Button
+                                label="Excluir"
+                                icon="pi pi-trash"
+                                className="p-button-sm p-1 p-button-danger"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleDeleteArtist(artista);
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+
                           <span className="text-sm text-500">ID: {artista.id}</span>
                         </div>
                       </div>
 
                       {artista.albuns && artista.albuns.length > 0 ? (
                         <div className="flex-grow-1 flex flex-column" style={{ minHeight: '0', overflow: 'hidden' }}>
+                          
                           <span className="text-sm font-semibold block mb-2">
                             ( {artista.quantidadeAlbuns || 0} ) {artista.quantidadeAlbuns <= 1 ? "Album" : "Albuns"}
                           </span>
