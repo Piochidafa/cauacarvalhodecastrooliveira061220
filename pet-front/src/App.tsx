@@ -133,20 +133,6 @@ function AppContent() {
     navigate('/login');
   };
 
-  const menuItems = [
-    {
-      label: 'Artistas',
-      icon: 'pi pi-fw pi-list',
-      command: () => navigate('/artista'),
-    },
-    {
-      label: 'Dashboard',
-      icon: 'pi pi-fw pi-chart-bar',
-      command: () => navigate('/dashboard'),
-    },
-
-  ];
-
   return (
     <div className="layout">
       <Toaster
@@ -177,7 +163,6 @@ function AppContent() {
         />
         <Menubar
          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1vh' }}
-         model={menuItems} 
          start={<Link to="/" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>SoundBoard</Link>}
          end={
            <>
