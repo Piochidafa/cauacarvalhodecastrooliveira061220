@@ -6,6 +6,7 @@ import com.pet.api.domain.album.model.Album;
 import com.pet.api.domain.album.repository.AlbumRepository;
 import com.pet.api.domain.artista.model.Artista;
 import com.pet.api.domain.artista.repository.ArtistaRepository;
+import com.pet.api.domain.albumcover.repository.AlbumCoverRepository;
 import com.pet.api.domain.regional.model.Regional;
 import com.pet.api.domain.regional.repository.RegionalRepository;
 import com.pet.api.shared.exception.ResourceNotFoundException;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AlbumService {
@@ -25,6 +27,9 @@ public class AlbumService {
 
     @Autowired
     RegionalRepository regionalRepository;
+
+    @Autowired
+    AlbumCoverRepository albumCoverRepository;
 
     public Album createAlbum(AlbumDTO albumDTO){
         Album album = new Album();
@@ -71,8 +76,10 @@ public class AlbumService {
         return albumRepository.save(album);
     }
 
+    @Transactional
     public void deleteAlbum(Long id){
         Album album = getById(id);
+        albumCoverRepository.deleteByAlbum_Id(album.getId());
         albumRepository.delete(album);
     }
 

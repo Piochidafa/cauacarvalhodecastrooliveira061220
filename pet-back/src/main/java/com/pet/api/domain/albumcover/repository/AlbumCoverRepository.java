@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface AlbumCoverRepository extends JpaRepository<AlbumCover, Long> {
     List<AlbumCover> findByAlbum_Id(Long albumId);
+
+    void deleteByAlbum_Id(Long albumId);
 }
