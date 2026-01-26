@@ -9,6 +9,7 @@ import com.pet.api.domain.auth.model.User;
 import com.pet.api.domain.auth.repository.UserRepository;
 import com.pet.api.domain.auth.service.RefreshTokenService;
 import com.pet.api.shared.config.security.TokenService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -43,6 +44,7 @@ public class AuthenticationController {
     private RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
+    @Operation(summary = "Autentica usuário e retorna tokens")
     public ResponseEntity<AuthenticationResponseDTO> login(@RequestBody @Valid AuthenticationDTO data) {
         try {
             var usernamePassword = new UsernamePasswordAuthenticationToken(data.username(), data.password());
@@ -59,6 +61,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
+        @Operation(summary = "Renova o access token usando refresh token")
     public ResponseEntity<RefreshTokenResponseDTO> refresh(
             @CookieValue("refreshToken") String refreshTokenValue,
             HttpServletResponse response
@@ -90,6 +93,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Registra um novo usuário")
     public ResponseEntity register(@RequestBody @Valid RegisterDTO data) {
         if (userRepository.findByUsername(data.username()) != null) {
             return ResponseEntity.badRequest().body("Username ja em uso!");

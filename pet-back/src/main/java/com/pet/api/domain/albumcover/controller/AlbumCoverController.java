@@ -5,6 +5,7 @@ import com.pet.api.domain.albumcover.dto.AlbumCoverDTO;
 import com.pet.api.domain.albumcover.model.AlbumCover;
 import com.pet.api.domain.albumcover.service.AlbumCoverService;
 import com.pet.api.shared.service.MinioService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +36,13 @@ public class AlbumCoverController {
     MinioService minioService;
 
     @GetMapping
+    @Operation(summary = "Retorna capas de álbuns paginadas")
     public Page<AlbumCover> retornaTodasCapasPaginado(Pageable pageable){
         return albumCoverService.getAllPaginado(pageable);
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Faz upload de capa de álbum")
     public ResponseEntity<AlbumCover> uploadAlbumCover(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "albumId", required = false) Long albumId
@@ -53,17 +56,20 @@ public class AlbumCoverController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtém capa de álbum por ID")
     public AlbumCover getAlbumCoverById(@PathVariable Long id){
         return albumCoverService.getById(id);
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualiza capa de álbum por ID")
     public ResponseEntity<AlbumCover> updateAlbumCover(@PathVariable Long id, @RequestBody AlbumCoverDTO albumCoverDTO){
         AlbumCover albumCover = albumCoverService.updateAlbumCover(id, albumCoverDTO);
         return ResponseEntity.ok(albumCover);
     }
 
     @GetMapping("/{id}/download")
+    @Operation(summary = "Baixa arquivo da capa do álbum")
     public ResponseEntity<InputStreamResource> downloadAlbumCover(@PathVariable Long id) {
         try {
             AlbumCover albumCover = albumCoverService.getById(id);
@@ -79,6 +85,7 @@ public class AlbumCoverController {
     }
 
     @GetMapping("/{id}/url")
+    @Operation(summary = "Obtém URL da capa do álbum")
     public ResponseEntity<String> getAlbumCoverUrl(@PathVariable Long id) {
         AlbumCover albumCover = albumCoverService.getById(id);
         String url = minioService.getFileUrl(albumCover.getObjectKey());
@@ -86,6 +93,7 @@ public class AlbumCoverController {
     }
 
     @GetMapping("/album/{albumId}")
+    @Operation(summary = "Lista capas de um álbum")
     public List<AlbumCoverResponseDTO> getAlbumCoversByAlbumId(@PathVariable Long albumId){
         return albumCoverService.getByAlbumId(albumId)
             .stream()
@@ -97,6 +105,7 @@ public class AlbumCoverController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Deleta capa de álbum por ID")
     public ResponseEntity<Void> deleteAlbumCover(@PathVariable Long id){
         albumCoverService.deleteAlbumCover(id);
         return ResponseEntity.noContent().build();

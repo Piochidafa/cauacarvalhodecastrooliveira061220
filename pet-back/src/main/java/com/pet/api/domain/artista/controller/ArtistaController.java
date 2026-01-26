@@ -8,6 +8,7 @@ import com.pet.api.domain.artista.service.ArtistaService;
 import com.pet.api.domain.album.dto.AlbumResponseDTO;
 import com.pet.api.domain.albumcover.dto.AlbumCoverResponseDTO;
 import com.pet.api.shared.service.MinioService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ public class ArtistaController {
     MinioService minioService;
 
     @GetMapping
+    @Operation(summary = "Retorna artistas paginados")
     public Page<ArtistaDetailResponseDTO> retornaTodosArtistasPaginado(Pageable pageable){
         return artistaService.getAllPaginado(pageable).map(artista -> {
             var albuns = artista.getAlbuns().stream()
@@ -50,6 +52,7 @@ public class ArtistaController {
     }
 
     @GetMapping("/buscar")
+    @Operation(summary = "Busca artistas por nome")
     public Page<ArtistaDetailResponseDTO> buscarArtistasPorNome(
             @RequestParam String nome,
             Pageable pageable){
@@ -72,12 +75,14 @@ public class ArtistaController {
     }
 
     @PostMapping("/create")
+    @Operation(summary = "Cria um novo artista")
     public ArtistaResponseDTO createArtista(@RequestBody ArtistaDTO artista){
         Artista novoArtista = artistaService.createArtista(artista);
         return ArtistaResponseDTO.fromArtista(novoArtista);
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtém um artista por ID")
     public ArtistaDetailResponseDTO getArtistaById(@PathVariable Long id){
         Artista artista = artistaService.getById(id);
         
@@ -98,12 +103,14 @@ public class ArtistaController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualiza um artista por ID")
     public ArtistaResponseDTO updateArtista(@PathVariable Long id, @RequestBody ArtistaDTO artista){
         Artista artistaAtualizado = artistaService.updateArtista(id, artista);
         return ArtistaResponseDTO.fromArtista(artistaAtualizado);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Deleta um artista por ID")
     public void deleteArtista(@PathVariable Long id){
         artistaService.deleteArtista(id);
     }
