@@ -26,6 +26,10 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
     regionalId: 0
   });
   const [regionals, setRegionals] = useState<Regional[]>([]);
+  const normalizedRegionals = regionals.map((regional) => ({
+    ...regional,
+    id: Number(regional.id)
+  }));
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -144,11 +148,16 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   useEffect(() => {
     if (album) {
       currentAlbumId.current = album.id;
-      
+
+      const resolvedArtistaIdRaw = album.artista?.id ?? (album as any).artistaId ?? artistaId;
+      const resolvedRegionalIdRaw = album.regional?.id ?? (album as any).regionalId ?? 0;
+      const resolvedArtistaId = resolvedArtistaIdRaw ? Number(resolvedArtistaIdRaw) : undefined;
+      const resolvedRegionalId = resolvedRegionalIdRaw ? Number(resolvedRegionalIdRaw) : 0;
+
       setFormData({
         nome: album.nome,
-        artistaId: album.artista.id,
-        regionalId: album.regional.id,
+        artistaId: resolvedArtistaId,
+        regionalId: Number.isFinite(resolvedRegionalId) ? resolvedRegionalId : 0,
       });
     } else {
       currentAlbumId.current = undefined;
@@ -272,6 +281,7 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   return (
     <Dialog
       header={album ? 'Editar Álbum' : 'Novo Álbum'}
+      draggable={false}
       visible={visible}
       style={{ width: '450px' }}
       onHide={onHide}
@@ -301,9 +311,9 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
           <label htmlFor="regional">Regional *</label>
           <Dropdown
             id="regional"
-            value={formData.regionalId}
+            value={formData.regionalId ? Number(formData.regionalId) : null}
             onChange={(e) => setFormData({ ...formData, regionalId: e.value })}
-            options={regionals}
+            options={normalizedRegionals}
             optionLabel="nome"
             optionValue="id"
             placeholder="Selecionar região"

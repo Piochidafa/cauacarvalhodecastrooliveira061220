@@ -14,9 +14,35 @@ class AlbumService {
     return response.data;
   }
 
-  async getAlbunsByArtista(artistaId: number, page: number = 0, size: number = 10): Promise<PaginatedResponse<Album>> {
+  async getAlbunsByArtista(
+    artistaId: number,
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'nome',
+    sortDir: string = 'asc'
+  ): Promise<PaginatedResponse<Album>> {
     const response = await api.get<PaginatedResponse<Album>>(`/v1/album/artista/${artistaId}`, {
-      params: { page, size },
+      params: { page, size, sort: `${sortBy},${sortDir}` },
+    });
+    return response.data;
+  }
+
+  async searchAlbunsByArtista(
+    nome: string,
+    artistaId: number,
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'nome',
+    sortDir: string = 'asc'
+  ): Promise<PaginatedResponse<Album>> {
+    const response = await api.get<PaginatedResponse<Album>>('/v1/album/buscar-por-artista', {
+      params: {
+        nome,
+        artistaId,
+        page,
+        size,
+        sort: `${sortBy},${sortDir}`,
+      },
     });
     return response.data;
   }

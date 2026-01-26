@@ -9,6 +9,8 @@ interface ArtistCreateModalProps {
   onChange: (value: string) => void;
   onCancel: () => void;
   onSave: () => void;
+  title?: string;
+  saveLabel?: string;
 }
 
 function ArtistCreateModal({
@@ -17,7 +19,9 @@ function ArtistCreateModal({
   loading,
   onChange,
   onCancel,
-  onSave
+  onSave,
+  title = 'Novo Artista:',
+  saveLabel = 'Salvar'
 }: ArtistCreateModalProps) {
   return (
     <div
@@ -27,7 +31,7 @@ function ArtistCreateModal({
     >
 
     <Dialog
-      header="Novo Artista:"
+      header={title}
       modal
       draggable={false}
       visible={visible}
@@ -56,7 +60,7 @@ function ArtistCreateModal({
             disabled={loading}
             />
           <Button
-            label="Salvar"
+            label={saveLabel}
             icon="pi pi-check p-1"
             onClick={onSave}
             loading={loading}
