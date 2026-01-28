@@ -134,7 +134,7 @@ function AppContent() {
   };
 
   return (
-    <div className="layout">
+    <div className="layout flex flex-row">
       <Toaster
           position="top-right"
           toastOptions={{
@@ -161,8 +161,17 @@ function AppContent() {
             },
           }}
         />
+
         <Menubar
-         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1vh' }}
+         className='flex-column h-screen'
+         style={{
+           display: 'flex', 
+           justifyContent: 'space-between', 
+           alignItems: 'center', 
+           padding: '1vh',
+           flexDirection: 'column',
+           width: '25vw'
+          }}
          start={<Link to="/" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>SoundBoard</Link>}
          end={
            <>

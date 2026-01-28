@@ -7,11 +7,13 @@ import { Card } from 'primereact/card';
 import { Dropdown } from 'primereact/dropdown';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Paginator } from 'primereact/paginator';
+import defaultUserPFP from '../assets/ArtistaAssets/mickey.jpg'
 import artistaFacade from '../services/facades/artistaFacade';
 import albumCoverService from '../services/api/albumCoverService';
 import type { Artista } from '../services/types/artista.types';
 import { Image } from 'primereact/image';
 import ArtistCreateModal from './ArtistCreateModal';
+import { AnimatePresence, motion } from 'motion/react';
 
 interface PaginatorChangeEvent {
   page: number;
@@ -26,11 +28,12 @@ function ArtistList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(0);
-  const [rows, setRows] = useState(12);
+  const [rows, setRows] = useState(8);
   const [totalRecords, setTotalRecords] = useState(0);
-  const [coverUrls, setCoverUrls] = useState<Record<number, string>>({});
   const [createDialogVisible, setCreateDialogVisible] = useState(false);
   const [newArtistName, setNewArtistName] = useState('');
+  const [newArtistImageFile, setNewArtistImageFile] = useState<File | null>(null);
+  const [newArtistPreviewUrl, setNewArtistPreviewUrl] = useState<string | null>(null);
   const [creatingArtist, setCreatingArtist] = useState(false);
   const [artistActionsEnabled, setArtistActionsEnabled] = useState(true);
 
@@ -55,7 +58,6 @@ function ArtistList() {
     const artistasSubscription = artistaFacade.artistas$.subscribe((newArtistas) => {
       console.log('Artistas atualizados:', newArtistas);
       setArtistas(newArtistas);
-      loadCoverUrls(newArtistas);
     });
     const loadingSubscription = artistaFacade.loading$.subscribe((loadingState) => {
       console.log('Loading state:', loadingState);
@@ -78,29 +80,6 @@ function ArtistList() {
     };
   }, []);
 
-  const loadCoverUrls = async (artistasData: Artista[]) => {
-    const urls: Record<number, string> = {};
-
-    for (const artista of artistasData) {
-      if (artista.albuns && artista.albuns.length > 0) {
-        for (const album of artista.albuns.slice(0, 4)) {
-          // Usa a primeira capa que já vem do backend
-          if (album.capas && album.capas.length > 0) {
-            const firstCover = album.capas[0];
-            try {
-              // Se a URL já vem na capa, usa direto; senão busca pelo ID
-              const url = firstCover.url || (firstCover.id ? await albumCoverService.getCoverUrl(firstCover.id) : '');
-              if (url) urls[album.id] = url;
-            } catch (err) {
-              console.error('Erro ao carregar URL da capa do álbum', album.id, ':', err);
-            }
-          }
-        }
-      }
-    }
-
-    setCoverUrls(urls);
-  };
 
   const loadArtistas = async () => {
     if (searchTerm.trim()) {
@@ -112,18 +91,6 @@ function ArtistList() {
     }
   };
 
-  const handleDeleteArtist = async (artista: Artista) => {
-    const confirmed = window.confirm('Deseja excluir este artista?');
-    if (!confirmed) return;
-
-    try {
-      await artistaFacade.deleteArtista(artista.id);
-      toast.success('Artista excluído com sucesso!');
-      await loadArtistas();
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao excluir artista');
-    }
-  };
 
   const handleCreateArtist = async () => {
     if (!newArtistName.trim()) {
@@ -133,15 +100,35 @@ function ArtistList() {
 
     setCreatingArtist(true);
     try {
-      await artistaFacade.createArtista({ nome: newArtistName.trim() });
+      const created = await artistaFacade.createArtista({ nome: newArtistName.trim() });
+      if (created?.id && newArtistImageFile) {
+        await artistaFacade.uploadArtistaImage(created.id, newArtistImageFile);
+      }
       toast.success('Artista criado com sucesso!');
       setCreateDialogVisible(false);
       setNewArtistName('');
+      setNewArtistImageFile(null);
+      if (newArtistPreviewUrl) {
+        URL.revokeObjectURL(newArtistPreviewUrl);
+        setNewArtistPreviewUrl(null);
+      }
       await loadArtistas();
     } catch (error: any) {
       toast.error(error.message || 'Erro ao criar artista');
     } finally {
       setCreatingArtist(false);
+    }
+  };
+
+  const handleNewArtistImageChange = (file: File | null) => {
+    setNewArtistImageFile(file);
+    if (newArtistPreviewUrl) {
+      URL.revokeObjectURL(newArtistPreviewUrl);
+    }
+    if (file) {
+      setNewArtistPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setNewArtistPreviewUrl(null);
     }
   };
 
@@ -159,35 +146,57 @@ function ArtistList() {
     setRows(e.rows);
   };
 
+  const getRegionalName = (artista: Artista) => {
+    if (!artista.albuns || artista.albuns.length === 0) {
+      return 'Regional não informada';
+    }
+
+    const ultimoAlbum = artista.albuns[artista.albuns.length - 1];
+    return ultimoAlbum?.regional?.nome || 'Regional não informada';
+  };
+
+  const getFakeListeners = (id: number) => {
+    const base = 1200;
+    const extra = (id * 873) % 8500;
+    return base + extra;
+  };
+
   const header = (
-    <div className="flex flex-column gap-2 mt-4 ">
+    <motion.div
+      className="flex flex-column gap-2 mt-2 "
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+    >
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingLeft: '1vh',
+        marginBottom: '1vh'
       }}>
-      <div className="flex gap-2 align-items-center flex-wrap">
+      <motion.div
+        className="flex gap-2 align-items-center flex-wrap"
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+      >
         <Button
           label="Novo Artista"
           icon="pi pi-plus"
           onClick={() => setCreateDialogVisible(true)}
           className='gap-2'
           style={{
-            padding: '0.6vh'
+            padding: '0.6vh',
           }}
           />
-        <Button
-          label={artistActionsEnabled ? 'Ocultar ações' : 'Habilitar ações'}
-          icon={artistActionsEnabled ? 'pi pi-eye-slash' : 'pi pi-cog'}
-          onClick={() => setArtistActionsEnabled((prev) => !prev)}
-          className="p-button-outlined"
-          style={{
-            padding: '0.6vh'
-          }}
-        />
-      </div>
-      <div className="flex gap-2 align-items-center flex-wrap">
+
+      </motion.div>
+      <motion.div
+        className="flex gap-2 align-items-center flex-wrap"
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.3 }}
+      >
         <Dropdown
           value={sortOrder}
           onChange={(e) => setSortOrder(e.value)}
@@ -214,64 +223,109 @@ function ArtistList() {
           }}
           onClick={loadArtistas}
           />
-      </div>
+      </motion.div>
 
      </div>
-    </div>
+    </motion.div>
   );
 
   return (
-    <div className="p-2 h-screen" style={{ display: 'flex', flexDirection: 'column' }}>
-      <Card title="Artistas" className='p-3' style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <div className="
+     p-2 
+     flex 
+     flex-column
+     h-screen
+     
+     " >
+     
+      <div title="Artistas" className='p-3  text-green-50' style={{height: '92vh', width: '85vw'}}>
         {loading ? (
           <div className="flex justify-content-center p-5">
             <ProgressSpinner />
           </div>
         ) : (
           <>
-          
-            <div className="mb-2">{header}</div>
-            <div className="grid" style={{ flex: 1, overflow: 'auto' }}>
-              {artistas.map((artista) => (
-                <div key={artista.id} className="col-12 md:col-5 lg:col-3 xl:col-3">
-                  <Card
-                    className=" cursor-pointer hover:shadow-4 border-2 p-3 transition-duration-200 h-full card-hover"
-                    onClick={() => handleRowClick(artista)}
-                    style={{ display: 'flex', flexDirection: 'column', minHeight: '0' }}
-                  >
-                    <div className="flex flex-column h-full" style={{ minHeight: '0', gap: '0.5rem' }}>
-                      <div className="flex align-items-center gap-3 pb-4" style={{ borderBottom: '1px solid #ddd' }}>
-                        <i className="pi pi-user text-2xl text-primary"></i>
+            <div className="mb-2 ">{header}</div>
+            <div className='
+              h-full
+              flex
+              flex-column
+              justify-content-between
+            ' >
+              <motion.div
+                className="grid"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+                }}
+              >
+                <AnimatePresence>
+                  {artistas.map((artista) => {
+                    const regionalName = getRegionalName(artista);
+                    const fakeListeners = getFakeListeners(artista.id).toLocaleString('pt-BR');
+
+                    return (
+                    <motion.div
+                      key={artista.id}
+                      className="col-12 md:col-5 lg:col-3 xl:col-3 h-25rem"
+                      variants={{
+                        hidden: { opacity: 0, y: 16 },
+                        visible: { opacity: 1, y: 0 }
+                      }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      whileHover={{ y: -4, scale: 1.01 }}
+                    >
+                      <Card
+                        className=" cursor-pointer hover:shadow-4 border-2 p-3 transition-duration-200 h-full card-hover border-round-xl"
+                        onClick={() => handleRowClick(artista)}
+                        style={{ display: 'flex', flexDirection: 'column', minHeight: '0' }}
+                      >
+                      <div className="flex flex-column h-full" style={{ minHeight: '0', gap: '0.5rem' }}>
+                      <div className="flex align-items-center gap-3 pb-4 flex-column" style={{ borderBottom: '1px solid #ffffff' }}>
+
+
+                        <Image  src={artista.imageUrl ? artista.imageUrl : defaultUserPFP }  imageClassName='border-circle' width="120vw" height='120vh' imageStyle={{
+                          objectFit: 'cover',
+                          marginTop: '1vh'
+                        }}/>
+                        
+                        
                         <div className="flex flex-column flex-grow-1 min-w-0">
                           <div className='flex flex-row justify-content-between align-items-center '>
 
-                            <span className=" pointer font-bold text-lg pt-2" style={{ wordBreak: 'break-word' }}>{artista.nome}</span>
-                          
-                          {artistActionsEnabled && (
-                            <div className="flex gap-2 align-items-center">
-                              <Button
-                                label="Excluir"
-                                icon="pi pi-trash"
-                                className="p-button-sm p-1 p-button-danger"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleDeleteArtist(artista);
-                                }}
-                              />
-                            </div>
-                          )}
+                            <span className=" pointer font-bold text-2xl pt-2" style={{ wordBreak: 'break-word' }}>{artista.nome}</span>
+                    
                         </div>
 
                           <span className="text-sm text-500">ID: {artista.id}</span>
+                          <div className="flex flex-row align-items-center gap-2 text-500 pt-2">
+                            <span className="pi pi-map-marker" />
+                            <span className="text-sm">{regionalName}</span>
+                          </div>
                         </div>
                       </div>
 
                       {artista.albuns && artista.albuns.length > 0 ? (
                         <div className="flex-grow-1 flex flex-column" style={{ minHeight: '0', overflow: 'hidden' }}>
                           
-                          <span className="text-sm font-semibold block mb-2">
-                            ( {artista.quantidadeAlbuns || 0} ) {artista.quantidadeAlbuns <= 1 ? "Album" : "Albuns"}
+                          <div className='flex flex-row justify-content-between px-2 py-2 align-items-center'>
+                           
+                          <div className='flex flex-row gap-1 '>
+
+                          <span className='pi pi-inbox text-md p-1'/>
+                          <span className="text-sm font-semibold block text-md font-bold">
+                              {artista.quantidadeAlbuns || 0}  {artista.quantidadeAlbuns <= 1 ? " Album" : " Albuns"}
                           </span>
+                            </div>
+                            <div className="flex flex-row align-items-center gap-2 text-500 pt-1">
+                            </div>
+                            <div className='flex flex-row gap-1 '>
+                              <span className="pi pi-chart-line text-md p-1" />
+                              <span className=" text-md font-semibold p-1">{fakeListeners} ouvintes/mês</span>
+                            </div>
+                          </div>
                           <div
                             className="gap-2 align-content-center justify-content-center"
                             style={{
@@ -282,101 +336,49 @@ function ArtistList() {
                               justifyItems: 'center'
                             }}
                           >
-                            {artista.albuns.slice(0, 4).map((album) => (
-                              <div key={album.id} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                                <div
-                                  className="border-round overflow-hidden border-3 border-round-sm "
-                                  style={{
-                                    backgroundColor: '#f0f0f0',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: '100%',
-                                    margin: '0 auto',
-                                    aspectRatio: '1.4 / 1',
-                                    height: 'auto'
-                                  }}
-                                >
-                                  {coverUrls[album.id] ? (
-                                    <Image
-                                      src={coverUrls[album.id]}
-                                      alt={album.nome}
-                                      style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        display: 'contain'
-                                      }}
-                                      imageStyle={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover'
-                                      }}
-                                    />
-                                  ) : (
-                                    <div
-                                      className="flex flex-column align-items-center justify-content-center"
-                                      style={{ width: '100%', height: '100%' }}
-                                    >
-                                      <i className="pi pi-question-circle text-lg text-surface-400"></i>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
                           </div>
                         </div>
                       ) : (
                         <div>
+                          <div className='flex flex-row gap-2'>
+                          <span className='pi pi-inbox'/>
                           <span className="text-sm font-semibold block mb-2">
-                            ( {artista.quantidadeAlbuns || 0} ) Albuns
+                             {artista.quantidadeAlbuns || 0} Albuns
                           </span>
-                        <div className="flex-grow-1 w-full flex flex-column align-items-center justify-content-center">
-                          <div
-                            style={{
-                              backgroundColor: '#e8e8e8',
-                              color: '#999',
-                              width: '100%',
-                              height: '30vh',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              borderRadius: '0.5rem'
-                            }}
-                            >
-                            
-                            <i className=" text-bold text-2xl">Nenhum álbum encontrado</i>
+                          
                           </div>
-                        </div>
                       </div>
                       )}
 
-                    </div>
-                  </Card>
-
+                      </div>
+                    </Card>
+                    </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              {artistas.length === 0 && (
+                <div className="text-center p-5 text-500">
+                  Nenhum artista encontrado
                 </div>
-              ))}
+              )}
+              </motion.div>
+              {artistas.length > 0 && (
+                <div className=" mt-2 flex flex-row justify-content-center align-content-center">
+                  <Paginator
+                    style={{paddingInline: '1vh'}}
+                    first={page * rows}
+                    rows={rows}
+                    totalRecords={totalRecords}
+                    onPageChange={handlePageChange}
+                    template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} artistas"
+                  />
+                </div>
+              )}
             </div>
-            {artistas.length === 0 && (
-              <div className="text-center p-5 text-500">
-                Nenhum artista encontrado
-              </div>
-            )}
-            {artistas.length > 0 && (
-              <div className=" mt-2 flex flex-row justify-content-center align-content-center">
-                <Paginator
-                  first={page * rows}
-                  rows={rows}
-                  totalRecords={totalRecords}
-                  onPageChange={handlePageChange}
-                  rowsPerPageOptions={[6, 12, 24, 48]}
-                  template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                  currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} artistas"
-                />
-              </div>
-            )}
           </>
         )}
-      </Card>
+      </div>
 
       <ArtistCreateModal
         visible={createDialogVisible}
@@ -387,9 +389,16 @@ function ArtistList() {
           if (!creatingArtist) {
             setCreateDialogVisible(false);
             setNewArtistName('');
+            setNewArtistImageFile(null);
+            if (newArtistPreviewUrl) {
+              URL.revokeObjectURL(newArtistPreviewUrl);
+            }
+            setNewArtistPreviewUrl(null);
           }
         }}
         onSave={handleCreateArtist}
+        imagePreviewUrl={newArtistPreviewUrl}
+        onImageChange={handleNewArtistImageChange}
       />
     </div>
   );

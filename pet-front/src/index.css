@@ -1,4 +1,9 @@
-@import 'primereact/resources/themes/lara-light-blue/theme.css';
+/* @import 'primereact/resources/themes/lara-dark-purple/theme.css'; */
+
+/* @import 'primereact/resources/themes/arya-purple/theme.css'; */
+@import 'primereact/resources/themes/arya-purple/theme.css';
+
+
 @import 'primereact/resources/primereact.css';
 @import 'primeicons/primeicons.css';
 @import 'primeflex/primeflex.css';
@@ -7,6 +12,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  color: antiquewhite;
 }
 
 body {
@@ -28,5 +34,5 @@ body {
 .card-hover:hover {
   transform: translateY(-3px) scale(1.01);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border-color: rgba(59, 130, 246, 0.6);
+  border-color: rgb(186,104,200)
 }
