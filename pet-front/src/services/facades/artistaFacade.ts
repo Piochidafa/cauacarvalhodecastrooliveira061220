@@ -113,6 +113,38 @@ class ArtistFacade {
     }
   }
 
+  async uploadArtistaImage(id: number, file: File): Promise<Artista | null> {
+    try {
+      this.loadingSubject.next(true);
+      this.errorSubject.next(null);
+      const artista = await artistaService.uploadArtistaImage(id, file);
+      // Recarregar lista
+      await this.loadArtistas();
+      return artista;
+    } catch (error: any) {
+      this.errorSubject.next(error.message || 'Erro ao enviar imagem do artista');
+      return null;
+    } finally {
+      this.loadingSubject.next(false);
+    }
+  }
+
+  async removeArtistaImage(id: number): Promise<Artista | null> {
+    try {
+      this.loadingSubject.next(true);
+      this.errorSubject.next(null);
+      const artista = await artistaService.removeArtistaImage(id);
+      // Recarregar lista
+      await this.loadArtistas();
+      return artista;
+    } catch (error: any) {
+      this.errorSubject.next(error.message || 'Erro ao remover imagem do artista');
+      return null;
+    } finally {
+      this.loadingSubject.next(false);
+    }
+  }
+
   async deleteArtista(id: number): Promise<boolean> {
     try {
       this.loadingSubject.next(true);

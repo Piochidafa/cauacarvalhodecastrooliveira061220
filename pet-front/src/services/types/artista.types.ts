@@ -3,6 +3,8 @@ import type { Regional } from "./regional.types";
 export interface Artista {
   id: number;
   nome: string;
+  imageKey?: string;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
   quantidadeAlbuns: number;
@@ -38,6 +40,8 @@ export interface PaginatedResponse<T> {
 
 export interface CreateArtistaRequest {
   nome: string;
+  imageKey?: string;
+  imageUrl?: string;
 }
 
 export interface CreateAlbumRequest {

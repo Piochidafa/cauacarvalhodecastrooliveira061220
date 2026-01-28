@@ -46,6 +46,23 @@ class ArtistaService {
     return response.data;
   }
 
+  async uploadArtistaImage(id: number, file: File): Promise<Artista> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<Artista>(`/v1/artista/${id}/image`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
+  async removeArtistaImage(id: number): Promise<Artista> {
+    const response = await api.delete<Artista>(`/v1/artista/${id}/image`);
+    return response.data;
+  }
+
   async deleteArtista(id: number): Promise<void> {
     await api.delete(`/v1/artista/${id}`);
   }
