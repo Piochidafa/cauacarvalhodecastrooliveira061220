@@ -32,6 +32,9 @@ function ArtistDetail() {
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [editArtistName, setEditArtistName] = useState('');
+  const [editArtistImageFile, setEditArtistImageFile] = useState<File | null>(null);
+  const [editArtistPreviewUrl, setEditArtistPreviewUrl] = useState<string | null>(null);
+  const [editCurrentImageUrl, setEditCurrentImageUrl] = useState<string | null>(null);
   const [updatingArtist, setUpdatingArtist] = useState(false);
   const [albumActionsEnabled, setAlbumActionsEnabled] = useState(true);
   const [albumSearchTerm, setAlbumSearchTerm] = useState('');
@@ -61,6 +64,7 @@ function ArtistDetail() {
     try {
       const artistaData = await artistaFacade.getArtista(parseInt(id));
       setArtista(artistaData);
+      setEditCurrentImageUrl(artistaData?.imageUrl || null);
       if (artistaData?.albuns) {
         const urlsFromArtist = buildCoverUrls(artistaData.albuns, {});
         setCachedCoverUrls(urlsFromArtist);
@@ -117,6 +121,35 @@ function ArtistDetail() {
     });
 
     return urls;
+  };
+
+  const handleEditArtistImageChange = (file: File | null) => {
+    setEditArtistImageFile(file);
+    if (editArtistPreviewUrl) {
+      URL.revokeObjectURL(editArtistPreviewUrl);
+    }
+    if (file) {
+      setEditArtistPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setEditArtistPreviewUrl(null);
+    }
+  };
+
+  const handleRemoveArtistImage = async () => {
+    if (!artista) return;
+    try {
+      await artistaFacade.removeArtistaImage(artista.id);
+      setEditArtistImageFile(null);
+      if (editArtistPreviewUrl) {
+        URL.revokeObjectURL(editArtistPreviewUrl);
+      }
+      setEditArtistPreviewUrl(null);
+      setEditCurrentImageUrl(null);
+      await loadArtista();
+      toast.success('Imagem removida com sucesso!');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao remover imagem');
+    }
   };
 
   if (loading) {
@@ -209,6 +242,12 @@ function ArtistDetail() {
         className="mb-4 cursor-pointer"
         onClick={() => {
           setEditArtistName(artista.nome);
+          setEditCurrentImageUrl(artista.imageUrl || null);
+          setEditArtistImageFile(null);
+          if (editArtistPreviewUrl) {
+            URL.revokeObjectURL(editArtistPreviewUrl);
+            setEditArtistPreviewUrl(null);
+          }
           setEditDialogVisible(true);
         }}
       >
@@ -223,6 +262,12 @@ function ArtistDetail() {
             onClick={(event) => {
               event.stopPropagation();
               setEditArtistName(artista.nome);
+              setEditCurrentImageUrl(artista.imageUrl || null);
+              setEditArtistImageFile(null);
+              if (editArtistPreviewUrl) {
+                URL.revokeObjectURL(editArtistPreviewUrl);
+                setEditArtistPreviewUrl(null);
+              }
               setEditDialogVisible(true);
             }}
           />
@@ -416,6 +461,12 @@ function ArtistDetail() {
           if (!updatingArtist) {
             setEditDialogVisible(false);
             setEditArtistName('');
+            setEditArtistImageFile(null);
+            if (editArtistPreviewUrl) {
+              URL.revokeObjectURL(editArtistPreviewUrl);
+            }
+            setEditArtistPreviewUrl(null);
+            setEditCurrentImageUrl(artista?.imageUrl || null);
           }
         }}
         onSave={async () => {
@@ -427,6 +478,14 @@ function ArtistDetail() {
           setUpdatingArtist(true);
           try {
             await artistaFacade.updateArtista(artista.id, { nome: editArtistName.trim() });
+            if (editArtistImageFile) {
+              await artistaFacade.uploadArtistaImage(artista.id, editArtistImageFile);
+              setEditArtistImageFile(null);
+              if (editArtistPreviewUrl) {
+                URL.revokeObjectURL(editArtistPreviewUrl);
+              }
+              setEditArtistPreviewUrl(null);
+            }
             toast.success('Artista atualizado com sucesso!');
             setEditDialogVisible(false);
             await loadArtista();
@@ -436,6 +495,10 @@ function ArtistDetail() {
             setUpdatingArtist(false);
           }
         }}
+        imagePreviewUrl={editArtistPreviewUrl}
+        currentImageUrl={editCurrentImageUrl}
+        onImageChange={handleEditArtistImageChange}
+        onRemoveImage={handleRemoveArtistImage}
       />
     </div>
   );

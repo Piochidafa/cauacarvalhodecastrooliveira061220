@@ -13,6 +13,9 @@ function ArtistForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<CreateArtistaRequest>({ nome: '' });
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (id && id !== 'novo') {
@@ -27,6 +30,7 @@ function ArtistForm() {
       const artista = await artistaFacade.getArtista(parseInt(id));
       if (artista) {
         setFormData({ nome: artista.nome });
+        setCurrentImageUrl(artista.imageUrl || null);
       }
     } catch (err) {
       toast.error('Erro ao carregar artista');
@@ -40,18 +44,63 @@ function ArtistForm() {
     setLoading(true);
 
     try {
+      let savedArtistaId: number | null = null;
       if (id && id !== 'novo') {
-        await artistaFacade.updateArtista(parseInt(id), formData);
+        const updated = await artistaFacade.updateArtista(parseInt(id), formData);
+        savedArtistaId = updated?.id ?? parseInt(id);
         toast.success('Artista atualizado com sucesso!');
       } else {
-        await artistaFacade.createArtista(formData);
+        const created = await artistaFacade.createArtista(formData);
+        savedArtistaId = created?.id ?? null;
         toast.success('Artista criado com sucesso!');
+      }
+
+      if (imageFile && savedArtistaId) {
+        const uploaded = await artistaFacade.uploadArtistaImage(savedArtistaId, imageFile);
+        if (uploaded) {
+          toast.success('Imagem do artista enviada com sucesso!');
+          setCurrentImageUrl(uploaded.imageUrl || null);
+          setImageFile(null);
+          setPreviewUrl(null);
+        }
       }
       navigate('/artista');
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar artista');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImageFile(file);
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!id || id === 'novo') {
+      setImageFile(null);
+      setPreviewUrl(null);
+      setCurrentImageUrl(null);
+      return;
+    }
+
+    try {
+      const updated = await artistaFacade.removeArtistaImage(parseInt(id));
+      if (updated) {
+        toast.success('Imagem removida com sucesso!');
+      }
+      setImageFile(null);
+      setPreviewUrl(null);
+      setCurrentImageUrl(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao remover imagem');
     }
   };
 
@@ -70,6 +119,34 @@ function ArtistForm() {
               className="w-full"
               required
             />
+          </div>
+
+          <div className="field">
+            <label htmlFor="imagem">Imagem (opcional)</label>
+            <input
+              id="imagem"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="w-full"
+            />
+            {(previewUrl || currentImageUrl) && (
+              <div className="pt-2">
+                <img
+                  src={previewUrl || currentImageUrl || ''}
+                  alt="Pré-visualização do artista"
+                  style={{ width: '100%', borderRadius: '6px' }}
+                />
+                <div className="pt-2">
+                  <Button
+                    type="button"
+                    label="Remover imagem"
+                    className="p-button-danger"
+                    onClick={handleRemoveImage}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 pt-3">
