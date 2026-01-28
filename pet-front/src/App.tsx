@@ -1,7 +1,6 @@
-import { lazy, Suspense, useState, useEffect, useCallback, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useCallback, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-import { Menubar } from 'primereact/menubar';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import ProtectedRoute from './components/ProtectedRoute';
 import { authFacade } from './services/facades/authFacade';
@@ -25,31 +24,7 @@ function LoadingFallback() {
 }
 
 function AppContent() {
-  const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('accessToken'));
   const lastNotifiedExpiryRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    // Verificar mudanças no localStorage
-    const handleStorageChange = () => {
-      setIsAuthenticated(!!localStorage.getItem('accessToken'));
-    };
-
-    // Listener customizado para mudanças de autenticação
-    const handleAuthChange = () => {
-      setIsAuthenticated(!!localStorage.getItem('accessToken'));
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('authChange', handleAuthChange);
-    window.addEventListener('focus', handleAuthChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('authChange', handleAuthChange);
-      window.removeEventListener('focus', handleAuthChange);
-    };
-  }, []);
 
   const computeExpiry = useCallback(() => {
     const raw = localStorage.getItem('accessTokenExpiresAt');
@@ -126,15 +101,8 @@ function AppContent() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    setIsAuthenticated(false);
-    navigate('/login');
-  };
-
   return (
-    <div className="layout flex flex-row">
+    <div className="layout flex flex-column">
       <Toaster
           position="top-right"
           toastOptions={{
@@ -160,60 +128,6 @@ function AppContent() {
               },
             },
           }}
-        />
-
-        <Menubar
-         className='flex-column h-screen'
-         style={{
-           display: 'flex', 
-           justifyContent: 'space-between', 
-           alignItems: 'center', 
-           padding: '1vh',
-           flexDirection: 'column',
-           width: '25vw'
-          }}
-         start={<Link to="/" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>SoundBoard</Link>}
-         end={
-           <>
-             {isAuthenticated ? (
-               <button 
-                 onClick={handleLogout}
-                 style={{
-                   background: 'none',
-                   border: 'none',
-                   cursor: 'pointer',
-                   display: 'flex',
-                   alignItems: 'center',
-                   gap: '0.5rem',
-                   color: '#666',
-                   fontSize: '1rem',
-                   padding: '0 1rem'
-                 }}
-               >
-                 <i className="pi pi-fw pi-sign-out"></i>
-                 Logout
-               </button>
-             ) : (
-               <button 
-                 onClick={() => navigate('/login')}
-                 style={{
-                   background: 'none',
-                   border: 'none',
-                   cursor: 'pointer',
-                   display: 'flex',
-                   alignItems: 'center',
-                   gap: '0.5rem',
-                   color: '#666',
-                   fontSize: '1rem',
-                   padding: '0 1rem'
-                 }}
-               >
-                 <i className="pi pi-fw pi-sign-in"></i>
-                 Login
-               </button>
-             )}
-           </>
-         }
         />
 
         <Suspense fallback={<LoadingFallback />}>
