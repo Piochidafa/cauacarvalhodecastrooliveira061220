@@ -17,6 +17,12 @@ public class Artista {
 
     private String nome;
 
+    @Column(name = "image_key")
+    private String imageKey;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
     private LocalDateTime created_at;
 
     private LocalDateTime updated_at;
@@ -39,6 +45,22 @@ public class Artista {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getImageKey() {
+        return imageKey;
+    }
+
+    public void setImageKey(String imageKey) {
+        this.imageKey = imageKey;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public LocalDateTime getCreated_at() {
@@ -74,6 +96,8 @@ public class Artista {
         return "Artista{" +
                 "id=" + id +
                 ", nome='" + nome + '\'' +
+                ", imageKey='" + imageKey + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
                 ", created_at=" + created_at +
                 ", updated_at=" + updated_at +
                 ", quantidadeAlbuns=" + getQuantidadeAlbuns() +

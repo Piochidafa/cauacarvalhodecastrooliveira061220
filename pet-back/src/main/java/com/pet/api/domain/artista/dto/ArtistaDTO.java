@@ -1,4 +1,4 @@
 package com.pet.api.domain.artista.dto;
 
-public record ArtistaDTO(String nome) {
+public record ArtistaDTO(String nome, String imageKey, String imageUrl) {
 }

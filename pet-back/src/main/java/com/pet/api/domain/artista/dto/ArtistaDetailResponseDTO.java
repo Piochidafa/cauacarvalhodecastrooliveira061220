@@ -8,6 +8,8 @@ import java.util.List;
 public record ArtistaDetailResponseDTO(
     Long id,
     String nome,
+    String imageKey,
+    String imageUrl,
     Integer quantidadeAlbuns,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
@@ -17,6 +19,8 @@ public record ArtistaDetailResponseDTO(
         return new ArtistaDetailResponseDTO(
             artista.getId(),
             artista.getNome(),
+            artista.getImageKey(),
+            artista.getImageUrl(),
             artista.getQuantidadeAlbuns(),
             artista.getCreated_at(),
             artista.getUpdated_at(),

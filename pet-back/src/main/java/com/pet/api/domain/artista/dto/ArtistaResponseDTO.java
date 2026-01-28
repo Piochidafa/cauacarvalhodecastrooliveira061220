@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 public record ArtistaResponseDTO(
     Long id,
     String nome,
+    String imageKey,
+    String imageUrl,
     Integer quantidadeAlbuns,
     LocalDateTime created_at,
     LocalDateTime updated_at
@@ -14,6 +16,8 @@ public record ArtistaResponseDTO(
         return new ArtistaResponseDTO(
             artista.getId(),
             artista.getNome(),
+            artista.getImageKey(),
+            artista.getImageUrl(),
             artista.getQuantidadeAlbuns(),
             artista.getCreated_at(),
             artista.getUpdated_at()
