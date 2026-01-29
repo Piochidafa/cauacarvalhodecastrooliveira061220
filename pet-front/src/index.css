@@ -29,10 +29,11 @@ body {
 
 .card-hover {
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  border: 2px solid transparent;
 }
 
 .card-hover:hover {
   transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border-color: rgb(186,104,200)
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  border-color: rgb(186, 104, 200);
 }
