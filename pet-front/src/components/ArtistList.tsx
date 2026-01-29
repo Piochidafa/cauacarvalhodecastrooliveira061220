@@ -42,7 +42,6 @@ function ArtistList() {
 		null,
 	);
 	const [creatingArtist, setCreatingArtist] = useState(false);
-	const [artistActionsEnabled, setArtistActionsEnabled] = useState(true);
 
 	useEffect(() => {
 		const fetchArtistas = async () => {
@@ -265,62 +264,66 @@ function ArtistList() {
 				transition={{ duration: 0.35, ease: "easeOut" }}
 			>
 				<Menubar
-				className="flex-row"
-				style={{
-					display: "flex",
-					justifyContent: "space-around",
-					alignItems: "center",
-					padding: "1vh",
-					flexDirection: "column",
-					width: "100%",
-					marginBottom: "2vh",
-					gap: "7vw",
-				}}
-				start={
-					<Link
-						className="flex flex-row gap-2 align-items-center"
-						to="/"
-						style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#ffffff" }}
-					>
-						<div
-							className=" border-round-2xl"
+					className="flex-row"
+					style={{
+						display: "flex",
+						justifyContent: "space-around",
+						alignItems: "center",
+						padding: "1vh",
+						flexDirection: "column",
+						width: "100%",
+						marginBottom: "2vh",
+						gap: "7vw",
+					}}
+					start={
+						<Link
+							className="flex flex-row gap-2 align-items-center"
+							to="/"
 							style={{
-								backgroundColor: "#ba68c8",
-								padding: "0.6vh",
-								paddingLeft: "1vh",
-								paddingRight: "1vh",
+								fontSize: "1.5rem",
+								fontWeight: "bold",
+								color: "#ffffff",
 							}}
 						>
-							<img src={svgMenuBar} width="25vw" />
+							<div
+								className=" border-round-2xl"
+								style={{
+									backgroundColor: "#ba68c8",
+									padding: "0.6vh",
+									paddingLeft: "1vh",
+									paddingRight: "1vh",
+								}}
+							>
+								<img src={svgMenuBar} width="25vw" />
+							</div>
+							MusicLib
+						</Link>
+					}
+					end={
+						<div className="flex align-items-center gap-3">
+							<Button
+								label="Novo Artista"
+								icon="pi pi-plus"
+								onClick={() => setCreateDialogVisible(true)}
+								className="gap-2 border-round-lg px-2"
+								style={{ padding: "0.6vh" }}
+							/>
+							<Button
+								label="Logout"
+								icon="pi pi-sign-out"
+								onClick={handleLogout}
+								className="p-button-text gap-2 flex align-items-center border-2 border-600 border-round-lg"
+								style={{ padding: "0.6vh" }}
+							/>
 						</div>
-						MusicLib
-					</Link>
-				}
-				end={
-					<div className="flex align-items-center gap-3">
-						<Button
-							label="Novo Artista"
-							icon="pi pi-plus"
-							onClick={() => setCreateDialogVisible(true)}
-							className="gap-2 border-round-lg px-2"
-							style={{ padding: "0.6vh" }}
-						/>
-						<Button
-							label="Logout"
-							icon="pi pi-sign-out"
-							onClick={handleLogout}
-							className="p-button-text gap-2 flex align-items-center border-2 border-600 border-round-lg"
-							style={{ padding: "0.6vh" }}
-						/>
-					</div>
-				}
+					}
 				/>
 			</motion.div>
 			<div
 				className="flex flex-column"
 				style={{
 					paddingLeft: "20vh",
-					paddingRight: "20vh"
+					paddingRight: "20vh",
 				}}
 			>
 				<div
@@ -392,7 +395,7 @@ function ArtistList() {
 															flexDirection: "column",
 															minHeight: "0",
 															overflow: "hidden",
-															background: "#111111",
+															background: "#444444",
 														}}
 													>
 														<div
@@ -430,9 +433,8 @@ function ArtistList() {
 																	<span
 																		className=" pointer font-bold text-lg pt-2 pl-1"
 																		style={{
-																			 wordBreak: "break-word", 
-																			 
-																			}}
+																			wordBreak: "break-word",
+																		}}
 																	>
 																		{artista.nome}
 																	</span>
@@ -450,7 +452,9 @@ function ArtistList() {
 																				style={{ color: "gray" }}
 																			>
 																				{artista.quantidadeAlbuns || 0}
-																				{artista.quantidadeAlbuns === 1 ? " Álbum" : " Álbuns"}
+																				{artista.quantidadeAlbuns === 1
+																					? " Álbum"
+																					: " Álbuns"}
 																			</span>
 																		</div>
 																	</div>
