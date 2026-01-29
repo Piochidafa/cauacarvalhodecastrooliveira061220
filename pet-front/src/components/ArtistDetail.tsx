@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
 import { Paginator } from 'primereact/paginator';
 import artistaFacade from '../services/facades/artistaFacade';
 import albumService from '../services/api/albumService';
@@ -13,6 +11,9 @@ import type { Artista, Album } from '../services/types/artista.types';
 import { Image } from 'primereact/image';
 import AlbumModal from './AlbumModal';
 import ArtistCreateModal from './ArtistCreateModal';
+
+import svgDisco from "../assets/ArtistaAssets/disco-svgrepo-com-white.svg";
+import defaultAlbumCover from "../assets/ArtistaDetailsAssets/defaultAlbumCover.png"
 
 interface PaginatorChangeEvent {
   page: number;
@@ -36,11 +37,10 @@ function ArtistDetail() {
   const [editArtistPreviewUrl, setEditArtistPreviewUrl] = useState<string | null>(null);
   const [editCurrentImageUrl, setEditCurrentImageUrl] = useState<string | null>(null);
   const [updatingArtist, setUpdatingArtist] = useState(false);
-  const [albumActionsEnabled, setAlbumActionsEnabled] = useState(true);
   const [albumSearchTerm, setAlbumSearchTerm] = useState('');
   const [albumSortOrder, setAlbumSortOrder] = useState<'asc' | 'desc'>('asc');
   const [albumPage, setAlbumPage] = useState(0);
-  const [albumRows, setAlbumRows] = useState(12);
+  const [albumRows, setAlbumRows] = useState(8);
   const [albumTotalRecords, setAlbumTotalRecords] = useState(0);
   const [albumsLoading, setAlbumsLoading] = useState(false);
 
@@ -152,6 +152,10 @@ function ArtistDetail() {
     }
   };
 
+  const handleToggleAlbumSort = () => {
+    setAlbumSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'));
+  };
+
   if (loading) {
     return (
       <div className="flex justify-content-center p-5">
@@ -162,21 +166,86 @@ function ArtistDetail() {
 
   if (!artista) {
     return (
-      <div className="p-4">
-        <Button
-          label="Voltar"
-          icon="pi pi-arrow-left"
-          onClick={() => navigate('/artista')}
-          className="mt-3"
-        />
+      <div className="min-h-screen flex align-items-center justify-content-center">
+        <div className="text-center">
+          <i className="pi pi-play text-5xl text-500" />
+          <h2 className="text-2xl font-bold mt-3">Artista não encontrado</h2>
+          <Button
+            label="Voltar"
+            icon="pi pi-arrow-left gap-2 w-5 p-2 px-4 font-bold"
+            onClick={() => navigate('/')}
+            className="mt-4"
+          />
+        </div>
       </div>
     );
   }
 
-  const header = (
-    <div className="flex flex-column gap-2">
-      <div className="flex align-items-center justify-content-between flex-wrap gap-2">
-        <div className="flex gap-2 align-items-center">
+  return (
+    <div className="min-h-screen"
+    >
+      <div className="relative" style={{ background: 'linear-gradient(180deg, #ba68c87f, rgba(0,0,0,0.85))' }}>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.8))' }} />
+        <div
+          className="relative"
+          style={{ paddingLeft: '20vh', paddingRight: '20vh', paddingTop: '2.5rem', paddingBottom: '2.5rem' }}
+        >
+          <Button
+            label="Voltar"
+            icon="pi pi-arrow-left px-2"
+            onClick={() => navigate('/')}
+            className="p-button-text mb-4"
+          />
+
+          <div className="flex flex-column md:flex-row gap-4 align-items-start">
+            <div className="border-round-2xl overflow-hidden shadow-4" style={{ width: 220, height: 220 }}>
+              {artista.imageUrl ? (
+                <Image
+                  src={artista.imageUrl}
+                  alt={artista.nome}
+                  imageStyle={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <div className="flex align-items-center justify-content-center h-full w-full surface-800">
+                  <i className="pi pi-user text-5xl text-400" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1">
+              <div className="flex align-items-start justify-content-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-green-300 mb-2">ARTISTA</p>
+                  <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">{artista.nome}</h1>
+                  <div className="flex align-items-center gap-1 text-300">
+                    <img src={svgDisco} alt="Disco" style={{ width: 30, height: 30 }} />
+                    <span className="text-lg" style={{color: 'white'}}>{albumTotalRecords} álbuns</span>
+                  </div>
+                </div>
+                <Button
+                  label="Editar"
+                  icon="pi pi-pencil"
+                  onClick={() => {
+                    setEditArtistName(artista.nome);
+                    setEditCurrentImageUrl(artista.imageUrl || null);
+                    setEditArtistImageFile(null);
+                    if (editArtistPreviewUrl) {
+                      URL.revokeObjectURL(editArtistPreviewUrl);
+                      setEditArtistPreviewUrl(null);
+                    }
+                    setEditDialogVisible(true);
+                  }}
+                  className="p-button-outlined"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main style={{ paddingLeft: '20vh', paddingRight: '20vh', paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
+        <div className="flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
+          <h2 className="text-2xl font-bold">Álbuns</h2>
           <Button
             label="Novo Álbum"
             icon="pi pi-plus"
@@ -186,112 +255,18 @@ function ArtistDetail() {
             }}
             className="p-button-success"
           />
-          <Button
-            label={albumActionsEnabled ? 'Ocultar ações' : 'Habilitar ações'}
-            icon={albumActionsEnabled ? 'pi pi-eye-slash' : 'pi pi-cog'}
-            onClick={() => setAlbumActionsEnabled((prev) => !prev)}
-            className="p-button-outlined"
-          />
         </div>
 
-        <div className="flex gap-2 align-items-center flex-wrap">
-          <Dropdown
-            value={albumSortOrder}
-            onChange={(e) => setAlbumSortOrder(e.value)}
-            options={[
-              { label: 'A-Z', value: 'asc' },
-              { label: 'Z-A', value: 'desc' }
-            ]}
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Ordenar..."
-            style={{ height: '3.0vh', padding: '0.5vh' }}
-          />
-          <InputText
-            placeholder="Buscar álbum..."
-            value={albumSearchTerm}
-            onChange={(e) => setAlbumSearchTerm(e.target.value)}
-            style={{ height: '3.2vh' }}
-          />
-          <Button
-            label="Buscar"
-            icon="pi pi-search"
-            style={{ padding: 6 }}
-            onClick={async () => {
-              setAlbumPage(0);
-              await fetchAlbuns(0, albumRows);
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
 
-  return (
-    <div className="p-4">
-      <Button
-        label="Voltar"
-        icon="pi pi-arrow-left"
-        onClick={() => navigate('/artista')}
-        className="mb-3"
-        text
-      />
-
-      <Card
-        title={artista.nome}
-        className="mb-4 cursor-pointer"
-        onClick={() => {
-          setEditArtistName(artista.nome);
-          setEditCurrentImageUrl(artista.imageUrl || null);
-          setEditArtistImageFile(null);
-          if (editArtistPreviewUrl) {
-            URL.revokeObjectURL(editArtistPreviewUrl);
-            setEditArtistPreviewUrl(null);
-          }
-          setEditDialogVisible(true);
-        }}
-      >
-
-        <small className=" font-bold bg-red-50 border-round p-2 inline-block">
-          Clique no card do artista para editar.
-        </small>
-        <div className="flex gap-2">
-          <Button
-            label="Editar"
-            icon="pi pi-pencil"
-            onClick={(event) => {
-              event.stopPropagation();
-              setEditArtistName(artista.nome);
-              setEditCurrentImageUrl(artista.imageUrl || null);
-              setEditArtistImageFile(null);
-              if (editArtistPreviewUrl) {
-                URL.revokeObjectURL(editArtistPreviewUrl);
-                setEditArtistPreviewUrl(null);
-              }
-              setEditDialogVisible(true);
-            }}
-          />
-          <Button
-            label="Novo Álbum"
-            icon="pi pi-plus"
-            onClick={(event) => {
-              event.stopPropagation();
-              setSelectedAlbum(null);
-              setAlbumModalVisible(true);
-            }}
-            className="p-button-success"
-          />
-        </div>
-      </Card>
-
-      <Card title={`Álbuns (${albumTotalRecords})`}>
         {albumsLoading ? (
           <div className="flex justify-content-center p-5">
             <ProgressSpinner />
           </div>
         ) : albuns.length === 0 ? (
-          <div className="text-center">
-            <p className="text-gray-600 mb-3">Este artista não possui álbuns cadastrados.</p>
+          <div className="flex flex-column align-items-center justify-content-center py-6 text-center surface-100 border-round-2xl">
+            <i className="pi pi-image text-5xl text-400 mb-3" />
+            <h3 className="text-xl font-semibold mb-2">Nenhum álbum encontrado</h3>
+            <p className="text-500 mb-3">{albumSearchTerm != '' ? 'Album nao encontrado' : 'Este artista ainda não possui álbuns'} </p>
             <Button
               label="Adicionar Álbum"
               icon="pi pi-plus"
@@ -304,26 +279,24 @@ function ArtistDetail() {
           </div>
         ) : (
           <>
-            <div className="mb-3">{header}</div>
-            <small className="text-red-600 font-semibold bg-red-50 border-round p-2 inline-block mb-2">
-              Clique no card do álbum para editar.
-            </small>
             <div className="grid">
               {albuns.map((album) => (
                 <div key={album.id} className="col-12 sm:col-6 md:col-4 lg:col-3">
-                  <Card
-                    className="hover:shadow-4 border-2 p-3 transition-duration-200 h-full card-hover"
+                  <div
+                    className="hover:shadow-4 border-2 p-3 transition-duration-200 h-full border-round-xl"
                     onClick={() => {
                       setSelectedAlbum(album);
-                      // setAlbumModalVisible(true);
+                      setAlbumModalVisible(true);
+                      
+
                     }}
-                    style={{ display: 'flex', flexDirection: 'column', minHeight: '0' }}
+                    style={{ display: 'flex', flexDirection: 'column', minHeight: '0', cursor: 'pointer' }}
                   >
                     <div className="flex flex-column h-full" style={{ minHeight: '0', gap: '0.75rem' }}>
                       <div
-                        className="border-round overflow-hidden border-2"
+                        className="border-round overflow-hidden "
                         style={{
-                          backgroundColor: '#f0f0f0',
+                          backgroundColor: '#050202',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -355,67 +328,53 @@ function ArtistDetail() {
                                   src={url}
                                   alt={`${album.nome} - ${index + 1}`}
                                   style={{ width: '100%', height: '100%' }}
-                                  imageStyle={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  imageStyle={{ width: '100%', height: '1%', objectFit: 'cover' }}
                                 />
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="flex flex-column align-items-center justify-content-center" style={{ width: '100%', height: '100%' }}>
-                            <i className="pi pi-question-circle text-2xl text-surface-400"></i>
-                          </div>
+                          <Image
+                            src={defaultAlbumCover}
+                            alt={`Capa padrão - ${album.nome}`}
+                            style={{ width: '100%', height: '100%' }}
+                            imageStyle={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
                         )}
                       </div>
 
-                      <div className="flex flex-column gap-1">
+                      <div className="flex flex-column gap-2">
+                        <div className="flex flex-row justify-content-between align-items-center">
                         <span className="font-semibold text-lg" style={{ wordBreak: 'break-word' }}>{album.nome}</span>
 
-                        <div className=' p-3 flex flex-row justify-content-between '>
-                          
-                        <span className="text-sm text-500 p-2">ID: {album.id}</span>
 
-                                              {albumActionsEnabled && (
-                                                <div className="flex gap-2">
-                          <Button
-                            label="Editar"
-                            icon="pi pi-pencil"
-                            className="p-button-sm p-1"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setSelectedAlbum(album);
-                              setAlbumModalVisible(true);
-                            }}
-                          />
-                          <Button
-                            label="Excluir"
-                            icon="pi pi-trash"
-                            className="p-button-sm p-button-danger"
-                            onClick={async (event) => {
-                              event.stopPropagation();
-                              const confirmed = window.confirm('Deseja excluir este álbum?');
-                              if (!confirmed) return;
-                              try {
-                                await albumService.deleteAlbum(album.id);
-                                toast.success('Álbum excluído com sucesso!');
-                                await fetchAlbuns();
-                              } catch (error: any) {
-                                toast.error(error.message || 'Erro ao excluir álbum');
-                              }
-                            }}
-                          />
+                            <div className="flex gap-2 h-2rem">
+                              <Button
+                                icon="pi pi-trash"
+                                className="p-button-sm p-button-danger p-1"
+                                onClick={async (event) => {
+                                  event.stopPropagation();
+                                  const confirmed = window.confirm('Deseja excluir este álbum?');
+                                  if (!confirmed) return;
+                                  try {
+                                    await albumService.deleteAlbum(album.id);
+                                    toast.success('Álbum excluído com sucesso!');
+                                    await fetchAlbuns();
+                                  } catch (error: any) {
+                                    toast.error(error.message || 'Erro ao excluir álbum');
+                                  }
+                                }}
+                              />
+                            </div>
                         </div>
-                      )}
-                              </div>
                       </div>
-
-
                     </div>
-                  </Card>
+                  </div>
                 </div>
               ))}
             </div>
             {albuns.length > 0 && (
-              <div className="mt-2 flex flex-row justify-content-center align-content-center">
+              <div className="mt-3 flex flex-row justify-content-center align-content-center">
                 <Paginator
                   first={albumPage * albumRows}
                   rows={albumRows}
@@ -424,7 +383,7 @@ function ArtistDetail() {
                     setAlbumPage(e.page);
                     setAlbumRows(e.rows);
                   }}
-                  rowsPerPageOptions={[6, 12, 24, 48]}
+                  rowsPerPageOptions={[8, 12, 24, 48]}
                   template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                   currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} álbuns"
                 />
@@ -432,7 +391,7 @@ function ArtistDetail() {
             )}
           </>
         )}
-      </Card>
+      </main>
 
       <AlbumModal
         visible={albumModalVisible}
