@@ -4,13 +4,13 @@ import toast from "react-hot-toast";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Card } from "primereact/card";
-import { Dropdown } from "primereact/dropdown";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Paginator } from "primereact/paginator";
 import { Menubar } from "primereact/menubar";
 
-import defaultUserPFP from "../assets/ArtistaAssets/mickey.jpg";
+import defaultUserPFP from "../assets/ArtistaAssets/defaultSinger.png";
 import svgMenuBar from "../assets/ArtistaAssets/music-tone-svgrepo-com.svg";
+import svgDisco from "../assets/ArtistaAssets/disco-svgrepo-com.svg";
 
 import artistaFacade from "../services/facades/artistaFacade";
 import type { Artista } from "../services/types/artista.types";
@@ -168,29 +168,19 @@ function ArtistList() {
 		navigate("/login");
 	};
 
-	const sortOptions = [
-		{ label: "A-Z", value: "asc" },
-		{ label: "Z-A", value: "desc" },
-	];
+	const toggleSortOrder = () => {
+		setSortOrder((current) => (current === "asc" ? "desc" : "asc"));
+	};
+
+	const clearSearch = async () => {
+		setSearchTerm("");
+		setPage(0);
+		await artistaFacade.loadArtistas(0, rows, "nome", sortOrder);
+	};
 
 	const handlePageChange = (e: PaginatorChangeEvent) => {
 		setPage(e.page);
 		setRows(e.rows);
-	};
-
-	const getRegionalName = (artista: Artista) => {
-		if (!artista.albuns || artista.albuns.length === 0) {
-			return "Regional não informada";
-		}
-
-		const ultimoAlbum = artista.albuns[artista.albuns.length - 1];
-		return ultimoAlbum?.regional?.nome || "Regional não informada";
-	};
-
-	const getFakeListeners = (id: number) => {
-		const base = 1200;
-		const extra = (id * 873) % 8500;
-		return base + extra;
 	};
 
 	const header = (
@@ -203,62 +193,78 @@ function ArtistList() {
 			<div
 				style={{
 					height: "5vh",
-					// display: 'flex',
-					// alignItems: 'center',
-					// justifyContent: 'space-between',
 				}}
-				className="flex flex-column align-items-center"
+				className="flex flex-column align-items-center "
 			>
 				<motion.div
-					className="grid flex gap-2 align-items-center flex-wrap col-12 "
+					className="flex gap-2 align-items-center col-12"
 					initial={{ opacity: 0, y: -6 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.2, duration: 0.3 }}
 				>
 					<InputText
 						placeholder="Buscar artista..."
-						className="col-10 border-round-lg "
+						className="flex-1 border-round-lg"
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								loadArtistas();
+							}
+						}}
 						style={{
 							height: "3.2vh",
-							//  width: '150vh',
 							padding: "2vh",
 						}}
 					/>
-					<Dropdown
-						value={sortOrder}
-						// className='col-4'
-						onChange={(e) => setSortOrder(e.value)}
-						className="border-round-lg"
-						style={{
-							// height: '3.0vh',
-							// paddingLeft: '0.5vh',
-							// paddingTop: '0.3vh',
-							padding: "0.9vh",
-						}}
-						options={sortOptions}
-						optionLabel="label"
-						optionValue="value"
-						placeholder="Ordenar..."
-					/>
-					<Button
-						label="Buscar"
-						className="px-5 gap-2 border-round-lg"
-						icon="pi pi-search"
-						style={{
-							padding: "0.8vh",
-						}}
-						onClick={loadArtistas}
-					/>
+					<div className="flex flex-row gap-2 flex-shrink-0">
+						<Button
+							label="Limpar"
+							icon="pi pi-times"
+							className="border-round-lg gap-2 px-3 p-button-text"
+							style={{
+								padding: "0.9vh",
+							}}
+							onClick={clearSearch}
+							disabled={!searchTerm.trim()}
+						/>
+						<Button
+							label={`${sortOrder === "asc" ? "A-Z" : "Z-A"}`}
+							icon="pi pi-sort-alt"
+							className="border-round-lg gap-2 px-3"
+							style={{
+								padding: "0.9vh",
+							}}
+							onClick={toggleSortOrder}
+						/>
+						<Button
+							label="Buscar"
+							className="px-4 gap-2 border-round-lg"
+							icon="pi pi-search"
+							style={{
+								padding: "0.9vh",
+							}}
+							onClick={loadArtistas}
+						/>
+					</div>
 				</motion.div>
 			</div>
 		</motion.div>
 	);
 
 	return (
-		<div className="flex flex-column">
-			<Menubar
+		<motion.div
+			className="flex flex-column"
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 0.35 }}
+		>
+			<motion.div
+				initial={{ y: -12, opacity: 0 }}
+				animate={{ y: 0, opacity: 1 }}
+				transition={{ duration: 0.35, ease: "easeOut" }}
+			>
+				<Menubar
 				className="flex-row"
 				style={{
 					display: "flex",
@@ -268,7 +274,7 @@ function ArtistList() {
 					flexDirection: "column",
 					width: "100%",
 					marginBottom: "2vh",
-					gap: '7vw'
+					gap: "7vw",
 				}}
 				start={
 					<Link
@@ -281,8 +287,8 @@ function ArtistList() {
 							style={{
 								backgroundColor: "#ba68c8",
 								padding: "0.6vh",
-								paddingLeft: '1vh',
-								paddingRight: '1vh'
+								paddingLeft: "1vh",
+								paddingRight: "1vh",
 							}}
 						>
 							<img src={svgMenuBar} width="25vw" />
@@ -308,17 +314,18 @@ function ArtistList() {
 						/>
 					</div>
 				}
-			/>
+				/>
+			</motion.div>
 			<div
 				className="flex flex-column"
 				style={{
 					paddingLeft: "20vh",
-					paddingRight: "20vh",
+					paddingRight: "20vh"
 				}}
 			>
 				<div
 					title="Artistas"
-					className="p-3  text-green-50"
+					className="p-3  text-green-50 "
 					style={{ height: "100%", width: "100%" }}
 				>
 					{loading ? (
@@ -327,16 +334,31 @@ function ArtistList() {
 						</div>
 					) : (
 						<>
-							<div className="flex flex-column gap-4 justify-content-between mb-3">
-								<div className="flex flex-column gap-2">
-									<h1 className="">Artistas</h1>
+							<motion.div
+								className="flex flex-column gap-6 justify-content-between mb-3"
+								initial={{ opacity: 0, y: 8 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.35, delay: 0.1 }}
+							>
+								<div className="flex flex-column gap-2 ">
+									<motion.h1
+										className=""
+										initial={{ opacity: 0, y: 6 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ duration: 0.35, delay: 0.15 }}
+									>
+										Artistas
+									</motion.h1>
+									<span className=" text-md " style={{ color: "gray" }}>
+										Explore seus artistas favoritos
+									</span>
 								</div>
 								<div>{header}</div>
-							</div>
+							</motion.div>
 
-							<div className="h-full flex flex-column justify-content-between">
+							<div className="h-full flex flex-column">
 								<motion.div
-									className="grid"
+									className="grid flex-1"
 									initial="hidden"
 									animate="visible"
 									variants={{
@@ -349,38 +371,38 @@ function ArtistList() {
 								>
 									<AnimatePresence>
 										{artistas.map((artista) => {
-											const regionalName = getRegionalName(artista);
-											const fakeListeners = getFakeListeners(
-												artista.id,
-											).toLocaleString("pt-BR");
-
 											return (
 												<motion.div
 													key={artista.id}
-													className="col-12 md:col-5 lg:col-3 xl:col-3 h-25rem"
+													className="col-12 md:col-5 lg:col-3 xl:col-3 h-30rem"
+													layout
 													variants={{
 														hidden: { opacity: 0, y: 16 },
 														visible: { opacity: 1, y: 0 },
 													}}
 													transition={{ duration: 0.25, ease: "easeOut" }}
 													whileHover={{ y: -4, scale: 1.01 }}
+													exit={{ opacity: 0, y: 12 }}
 												>
 													<Card
-														className=" cursor-pointer hover:shadow-4 border-2 p-3 transition-duration-200 h-full card-hover border-round-xl"
+														className=" cursor-pointer hover:shadow-4 hover:border-2 p-0 transition-duration-200 h-full card-hover border-round-xl"
 														onClick={() => handleRowClick(artista)}
 														style={{
 															display: "flex",
 															flexDirection: "column",
 															minHeight: "0",
+															overflow: "hidden",
+															background: "#111111",
 														}}
 													>
 														<div
-															className="flex flex-column h-full"
-															style={{ minHeight: "0", gap: "0.5rem" }}
+															className="flex flex-column"
+															style={{ minHeight: "0", gap: "0" }}
 														>
-															<div
-																className="flex align-items-center gap-3 pb-4 flex-column"
-																style={{ borderBottom: "1px solid #ffffff" }}
+															<motion.div
+																className="w-full"
+																whileHover={{ scale: 1.03 }}
+																transition={{ duration: 0.3, ease: "easeOut" }}
 															>
 																<Image
 																	src={
@@ -388,57 +410,47 @@ function ArtistList() {
 																			? artista.imageUrl
 																			: defaultUserPFP
 																	}
-																	imageClassName="border-circle"
-																	width="120vw"
-																	height="120vh"
 																	imageStyle={{
+																		width: "100%",
+																		height: "38vh",
 																		objectFit: "cover",
-																		marginTop: "1vh",
+																		display: "block",
 																	}}
 																/>
+															</motion.div>
 
-																<div className="flex flex-column flex-grow-1 min-w-0">
-																	<div className="flex flex-row justify-content-between align-items-center ">
-																		<span
-																			className=" pointer font-bold text-2xl pt-2"
-																			style={{ wordBreak: "break-word" }}
-																		>
-																			{artista.nome}
-																		</span>
-																	</div>
-
-																	<span className="text-sm text-500">
-																		ID: {artista.id}
+															<div
+																className="flex flex-column flex-grow-1 min-w-0 align-items-start"
+																style={{
+																	background: "#111111",
+																	padding: "1rem",
+																}}
+															>
+																<div className="flex flex-row justify-content-between align-items-center">
+																	<span
+																		className=" pointer font-bold text-lg pt-2 pl-1"
+																		style={{
+																			 wordBreak: "break-word", 
+																			 
+																			}}
+																	>
+																		{artista.nome}
 																	</span>
-																	<div className="flex flex-row align-items-center gap-2 text-500 pt-2">
-																		<span className="pi pi-map-marker" />
-																		<span className="text-sm">
-																			{regionalName}
-																		</span>
-																	</div>
 																</div>
-															</div>
 
-															{artista.albuns && artista.albuns.length > 0 ? (
 																<div
 																	className="flex-grow-1 flex flex-column"
 																	style={{ minHeight: "0", overflow: "hidden" }}
 																>
-																	<div className="flex flex-row justify-content-between px-2 py-2 align-items-center">
-																		<div className="flex flex-row gap-1 ">
-																			<span className="pi pi-inbox text-md p-1" />
-																			<span className="text-sm font-semibold block text-md font-bold">
-																				{artista.quantidadeAlbuns || 0}{" "}
-																				{artista.quantidadeAlbuns <= 1
-																					? " Album"
-																					: " Albuns"}
-																			</span>
-																		</div>
-																		<div className="flex flex-row align-items-center gap-2 text-500 pt-1"></div>
-																		<div className="flex flex-row gap-1 ">
-																			<span className="pi pi-chart-line text-md p-1" />
-																			<span className=" text-md font-semibold p-1">
-																				{fakeListeners} ouvintes/mês
+																	<div className="flex flex-row align-items-center mt-2">
+																		<div className="flex flex-row gap-1 align-items-center">
+																			<img src={svgDisco} width="24vh" />
+																			<span
+																				className="text-sm font-semibold block text-md font-bold"
+																				style={{ color: "gray" }}
+																			>
+																				{artista.quantidadeAlbuns || 0}
+																				{artista.quantidadeAlbuns === 1 ? " Álbum" : " Álbuns"}
 																			</span>
 																		</div>
 																	</div>
@@ -453,24 +465,7 @@ function ArtistList() {
 																		}}
 																	></div>
 																</div>
-															) : (
-																<div>
-																	<div className="flex flex-row justify-content-between px-2 py-2 align-items-center">
-																		<div className="flex flex-row gap-2">
-																			<span className="pi pi-inbox" />
-																			<span className="text-sm font-semibold block mb-2">
-																				{artista.quantidadeAlbuns || 0} Albuns
-																			</span>
-																		</div>
-																		<div className="flex flex-row gap-1 ">
-																			<span className="pi pi-chart-line text-md p-1" />
-																			<span className=" text-md font-semibold p-1">
-																				0 ouvintes/mês
-																			</span>
-																		</div>
-																	</div>
-																</div>
-															)}
+															</div>
 														</div>
 													</Card>
 												</motion.div>
@@ -483,18 +478,23 @@ function ArtistList() {
 										</div>
 									)}
 								</motion.div>
-								{artistas.length > 0 && (
-									<div className=" mt-2 flex flex-row justify-content-center align-content-center py-6 ">
-										<Paginator
-											style={{ paddingInline: "1vh", border: "none" }}
-											first={page * rows}
-											rows={rows}
-											totalRecords={totalRecords}
-											onPageChange={handlePageChange}
-										/>
-									</div>
-								)}
 							</div>
+							{artistas.length > 0 && (
+								<motion.div
+									className="flex flex-row justify-content-center align-content-center py-6"
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ duration: 0.3, delay: 0.1 }}
+								>
+									<Paginator
+										style={{ paddingInline: "1vh", border: "none" }}
+										first={page * rows}
+										rows={rows}
+										totalRecords={totalRecords}
+										onPageChange={handlePageChange}
+									/>
+								</motion.div>
+							)}
 						</>
 					)}
 				</div>
@@ -520,7 +520,7 @@ function ArtistList() {
 				imagePreviewUrl={newArtistPreviewUrl}
 				onImageChange={handleNewArtistImageChange}
 			/>
-		</div>
+		</motion.div>
 	);
 }
 
