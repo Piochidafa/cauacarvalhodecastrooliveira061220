@@ -11,9 +11,11 @@ import type { Artista, Album } from '../services/types/artista.types';
 import { Image } from 'primereact/image';
 import AlbumModal from './AlbumModal';
 import ArtistCreateModal from './ArtistCreateModal';
+import { motion } from 'motion/react';
 
 import svgDisco from "../assets/ArtistaAssets/disco-svgrepo-com-white.svg";
 import defaultAlbumCover from "../assets/ArtistaDetailsAssets/defaultAlbumCover.png"
+import defaultUserPFP from "../assets/ArtistaAssets/defaultSinger.png";
 
 interface PaginatorChangeEvent {
   page: number;
@@ -43,6 +45,16 @@ function ArtistDetail() {
   const [albumRows, setAlbumRows] = useState(8);
   const [albumTotalRecords, setAlbumTotalRecords] = useState(0);
   const [albumsLoading, setAlbumsLoading] = useState(false);
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 14, scale: 0.98 },
+    show: (index: number) => ({
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { delay: index * 0.04, duration: 0.25 }
+    })
+  };
 
   useEffect(() => {
     loadArtista();
@@ -170,12 +182,14 @@ function ArtistDetail() {
         <div className="text-center">
           <i className="pi pi-play text-5xl text-500" />
           <h2 className="text-2xl font-bold mt-3">Artista não encontrado</h2>
-          <Button
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+            <Button
             label="Voltar"
             icon="pi pi-arrow-left gap-2 w-5 p-2 px-4 font-bold"
             onClick={() => navigate('/')}
             className="mt-4"
-          />
+            />
+          </motion.div>
         </div>
       </div>
     );
@@ -186,33 +200,49 @@ function ArtistDetail() {
     >
       <div className="relative" style={{ background: 'linear-gradient(180deg, #ba68c87f, rgba(0,0,0,0.85))' }}>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.8))' }} />
-        <div
+        <motion.div
           className="relative"
           style={{ paddingLeft: '20vh', paddingRight: '20vh', paddingTop: '2.5rem', paddingBottom: '2.5rem' }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
         >
-          <Button
-            label="Voltar"
-            icon="pi pi-arrow-left px-2"
-            onClick={() => navigate('/')}
-            className="p-button-text mb-4"
-          />
+          <motion.div whileHover={{ x: -2 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              label="Voltar"
+              icon="pi pi-arrow-left px-2"
+              onClick={() => navigate('/')}
+              className="p-button-text mb-4"
+            />
+          </motion.div>
 
           <div className="flex flex-column md:flex-row gap-4 align-items-start">
-            <div className="border-round-2xl overflow-hidden shadow-4" style={{ width: 220, height: 220 }}>
-              {artista.imageUrl ? (
+            <motion.div
+              className="border-round-2xl overflow-hidden shadow-4"
+              style={{ width: 220, height: 220 }}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35 }}
+            >
+
                 <Image
-                  src={artista.imageUrl}
+                  src={
+                    artista.imageUrl
+                      ? artista.imageUrl
+                      : defaultUserPFP
+                    }
                   alt={artista.nome}
                   imageStyle={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
-              ) : (
-                <div className="flex align-items-center justify-content-center h-full w-full surface-800">
-                  <i className="pi pi-user text-5xl text-400" />
-                </div>
-              )}
-            </div>
 
-            <div className="flex-1">
+            </motion.div>
+
+            <motion.div
+              className="flex-1"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.05 }}
+            >
               <div className="flex align-items-start justify-content-between gap-3">
                 <div>
                   <p className="text-sm font-medium text-green-300 mb-2">ARTISTA</p>
@@ -222,29 +252,35 @@ function ArtistDetail() {
                     <span className="text-lg" style={{color: 'white'}}>{albumTotalRecords} álbuns</span>
                   </div>
                 </div>
-                <Button
-                  label="Editar"
-                  icon="pi pi-pencil"
-                  onClick={() => {
-                    setEditArtistName(artista.nome);
-                    setEditCurrentImageUrl(artista.imageUrl || null);
-                    setEditArtistImageFile(null);
-                    if (editArtistPreviewUrl) {
-                      URL.revokeObjectURL(editArtistPreviewUrl);
-                      setEditArtistPreviewUrl(null);
-                    }
-                    setEditDialogVisible(true);
-                  }}
-                  className="p-button-outlined"
-                />
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    label="Editar"
+                    icon="pi pi-pencil"
+                    onClick={() => {
+                      setEditArtistName(artista.nome);
+                      setEditCurrentImageUrl(artista.imageUrl || null);
+                      setEditArtistImageFile(null);
+                      if (editArtistPreviewUrl) {
+                        URL.revokeObjectURL(editArtistPreviewUrl);
+                        setEditArtistPreviewUrl(null);
+                      }
+                      setEditDialogVisible(true);
+                    }}
+                    className="p-button-outlined"
+                  />
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <main style={{ paddingLeft: '20vh', paddingRight: '20vh', paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
-        <div className="flex align-items-center justify-content-between gap-2 mb-4 flex-wrap">
+        <motion.div className="flex align-items-center justify-content-between gap-2 mb-4 flex-wrap"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           <h2 className="text-2xl font-bold">Álbuns</h2>
           <Button
             label="Novo Álbum"
@@ -255,7 +291,7 @@ function ArtistDetail() {
             }}
             className="p-button-success"
           />
-        </div>
+        </motion.div>
 
 
         {albumsLoading ? (
@@ -279,18 +315,25 @@ function ArtistDetail() {
           </div>
         ) : (
           <>
-            <div className="grid">
-              {albuns.map((album) => (
+            <motion.div
+              className="grid"
+              initial="hidden"
+              animate="show"
+              transition={{ staggerChildren: 0.02 }}
+            >
+              {albuns.map((album, index) => (
                 <div key={album.id} className="col-12 sm:col-6 md:col-4 lg:col-3">
-                  <div
-                    className="hover:shadow-4 border-2 p-3 transition-duration-200 h-full border-round-xl"
+                  <motion.div
+                    className="hover:shadow-4 border-2 transition-duration-200 h-full border-round-xl overflow-hidden"
                     onClick={() => {
                       setSelectedAlbum(album);
                       setAlbumModalVisible(true);
-                      
-
                     }}
                     style={{ display: 'flex', flexDirection: 'column', minHeight: '0', cursor: 'pointer' }}
+                    variants={cardVariants}
+                    custom={index}
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                   >
                     <div className="flex flex-column h-full" style={{ minHeight: '0', gap: '0.75rem' }}>
                       <div
@@ -328,7 +371,7 @@ function ArtistDetail() {
                                   src={url}
                                   alt={`${album.nome} - ${index + 1}`}
                                   style={{ width: '100%', height: '100%' }}
-                                  imageStyle={{ width: '100%', height: '1%', objectFit: 'cover' }}
+                                  imageStyle={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 />
                               </div>
                             ))}
@@ -337,13 +380,17 @@ function ArtistDetail() {
                           <Image
                             src={defaultAlbumCover}
                             alt={`Capa padrão - ${album.nome}`}
-                            style={{ width: '100%', height: '100%' }}
-                            imageStyle={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            style={{ width: '100%', height: '40.5vh'}}
+                            imageStyle={{
+                               width: '100%', 
+                               height: '100%', 
+                               objectFit: 'cover', 
+                               display: 'block' }}
                           />
                         )}
                       </div>
 
-                      <div className="flex flex-column gap-2">
+                      <div className="flex flex-column gap-2 p-3 pt-2">
                         <div className="flex flex-row justify-content-between align-items-center">
                         <span className="font-semibold text-lg" style={{ wordBreak: 'break-word' }}>{album.nome}</span>
 
@@ -369,10 +416,10 @@ function ArtistDetail() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
               ))}
-            </div>
+            </motion.div>
             {albuns.length > 0 && (
               <div className="mt-3 flex flex-row justify-content-center align-content-center">
                 <Paginator
@@ -383,9 +430,6 @@ function ArtistDetail() {
                     setAlbumPage(e.page);
                     setAlbumRows(e.rows);
                   }}
-                  rowsPerPageOptions={[8, 12, 24, 48]}
-                  template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                  currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} álbuns"
                 />
               </div>
             )}
