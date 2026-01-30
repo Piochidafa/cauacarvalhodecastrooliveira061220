@@ -6,6 +6,7 @@ import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { FileUpload } from 'primereact/fileupload';
 import { Client } from '@stomp/stompjs';
+import { motion } from 'motion/react';
 import albumCoverService from '../services/api/albumCoverService';
 import regionalFacade from '../services/facades/regionalFacade';
 import type { CreateAlbumRequest, Album } from '../services/types/artista.types';
@@ -38,6 +39,7 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   const stompClient = useRef<Client | null>(null);
   const [connected, setConnected] = useState(false);
   const currentAlbumId = useRef<number | undefined>(album?.id);
+  const isEditing = Boolean(album?.id);
 
   const uploadCoverIfNeeded = async (albumId: number | undefined, replaceExisting: boolean) => {
     const pendingFile = fileRef.current;
@@ -260,51 +262,91 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
 
   const footer = (
     <div className="flex gap-2 justify-content-end">
-      <Button
-        label="Cancelar"
-        icon="pi pi-times"
-        onClick={onHide}
-        className="p-button-text"
-        disabled={loading || uploadingCover}
-      />
-      <Button
-        label="Salvar"
-        icon="pi pi-check"
-        type="submit"
-        form="album-form"
-        loading={loading || uploadingCover}
-        disabled={!connected || loading || uploadingCover}
-      />
+      <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+        <Button
+          label="Cancelar"
+          icon="pi pi-times"
+          onClick={onHide}
+          className="p-button-text"
+          disabled={loading || uploadingCover}
+        />
+      </motion.div>
+      <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+        <Button
+          label="Salvar"
+          icon="pi pi-check"
+          type="submit"
+          form="album-form"
+          loading={loading || uploadingCover}
+          disabled={!connected || loading || uploadingCover}
+        />
+      </motion.div>
     </div>
   );
 
   return (
     <Dialog
       header={album ? 'Editar Álbum' : 'Novo Álbum'}
+      modal
       draggable={false}
       visible={visible}
-      style={{ width: '450px' }}
+      style={{ width: '480px', maxWidth: '92vw' }}
+      headerStyle={{ padding: '1.25rem 1.25rem 0.75rem' }}
+      contentStyle={{ padding: 0 }}
       onHide={onHide}
       footer={footer}
     >
+      <div className="p-4 pt-3">
+      <motion.div
+        className="flex align-items-center justify-content-between mb-3"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        <div>
+          <h3 className="m-0 text-lg">
+            {isEditing ? 'Edite os dados do album' : 'Crie um novo album'}
+          </h3>
+          <small className="text-500">Campos obrigatorios marcados com *</small>
+        </div>
+        {isEditing && (
+          <span className="text-xs text-green-700 bg-green-100 border-round px-2 py-1">
+            Editando
+          </span>
+        )}
+      </motion.div>
+
       {!connected && (
-        <div className="flex align-items-center gap-2 mb-3 p-3 bg-yellow-100 border-round">
+        <motion.div
+          className="flex align-items-center gap-2 mb-3 p-3 bg-yellow-100 border-round"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
           <i className="pi pi-exclamation-triangle text-yellow-800"></i>
           <span className="text-yellow-800">Conectando ao servidor...</span>
-        </div>
+        </motion.div>
       )}
 
-      <form id="album-form" onSubmit={handleSubmit}>
+      <motion.form
+        id="album-form"
+        className="p-fluid"
+        onSubmit={handleSubmit}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
+      >
         <div className="field">
           <label htmlFor="nome">Nome do Álbum *</label>
-          <InputText
-            id="nome"
-            value={formData.nome}
-            onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-            className="w-full"
-            required
-            disabled={loading}
-          />
+            <InputText
+              id="nome"
+              value={formData.nome}
+              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+              className="w-full"
+              placeholder="Ex: Nome do album"
+              required
+              disabled={loading}
+            />
         </div>
 
         <div className="field">
@@ -352,7 +394,8 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
             <small className="text-500">Arquivo selecionado: {file.name}</small>
           )}
         </div>
-      </form>
+      </motion.form>
+      </div>
     </Dialog>
   );
 }
