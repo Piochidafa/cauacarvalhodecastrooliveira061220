@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { InputText } from 'primereact/inputtext';
 import { Paginator } from 'primereact/paginator';
+import { Menu } from 'primereact/menu';
+import { Dialog } from 'primereact/dialog';
 import artistaFacade from '../services/facades/artistaFacade';
 import albumService from '../services/api/albumService';
 import type { Artista, Album } from '../services/types/artista.types';
@@ -45,6 +47,10 @@ function ArtistDetail() {
   const [albumRows, setAlbumRows] = useState(8);
   const [albumTotalRecords, setAlbumTotalRecords] = useState(0);
   const [albumsLoading, setAlbumsLoading] = useState(false);
+  const albumMenuRef = useRef<Menu>(null);
+  const [menuAlbum, setMenuAlbum] = useState<Album | null>(null);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [albumToDelete, setAlbumToDelete] = useState<Album | null>(null);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 14, scale: 0.98 },
@@ -164,9 +170,33 @@ function ArtistDetail() {
     }
   };
 
+
   const handleToggleAlbumSort = () => {
     setAlbumSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'));
   };
+
+  const handleDeleteAlbum = async (album: Album) => {
+    try {
+      await albumService.deleteAlbum(album.id);
+      toast.success('Álbum excluído com sucesso!');
+      await fetchAlbuns();
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao excluir álbum');
+    }
+  };
+
+  const albumMenuItems = [
+    {
+      label: 'Excluir álbum',
+      icon: 'pi pi-trash',
+      command: () => {
+        if (menuAlbum) {
+          setAlbumToDelete(menuAlbum);
+          setDeleteDialogVisible(true);
+        }
+      }
+    }
+  ];
 
   if (loading) {
     return (
@@ -266,7 +296,8 @@ function ArtistDetail() {
                       }
                       setEditDialogVisible(true);
                     }}
-                    className="p-button-outlined"
+                    className="p-button-outlined p-button-sm"
+                    style={{ padding: '0.45vh 0.9vh' }}
                   />
                 </motion.div>
               </div>
@@ -276,6 +307,7 @@ function ArtistDetail() {
       </div>
 
       <main style={{ paddingLeft: '20vh', paddingRight: '20vh', paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
+        <Menu model={albumMenuItems} popup ref={albumMenuRef} className="album-menu" />
         <motion.div className="flex align-items-center justify-content-between gap-2 mb-4 flex-wrap"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -289,7 +321,8 @@ function ArtistDetail() {
               setSelectedAlbum(null);
               setAlbumModalVisible(true);
             }}
-            className="p-button-success"
+            className="gap-2 border-round-lg px-2"
+            style={{ padding: '0.6vh' }}
           />
         </motion.div>
 
@@ -322,9 +355,9 @@ function ArtistDetail() {
               transition={{ staggerChildren: 0.02 }}
             >
               {albuns.map((album, index) => (
-                <div key={album.id} className="col-12 sm:col-6 md:col-4 lg:col-3">
+                <div key={album.id} className="col-12 sm:col-6 md:col-4 lg:col-2 flex ">
                   <motion.div
-                    className="hover:shadow-4 border-2 transition-duration-200 h-full border-round-xl overflow-hidden"
+                    className="hover:shadow-4 border-2 h-full border-round-xl overflow-hidden h-18rem w-17rem"
                     onClick={() => {
                       setSelectedAlbum(album);
                       setAlbumModalVisible(true);
@@ -335,7 +368,7 @@ function ArtistDetail() {
                     whileHover={{ y: -4, scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                   >
-                    <div className="flex flex-column h-full" style={{ minHeight: '0', gap: '0.75rem' }}>
+                    <div className="flex flex-column " style={{ minHeight: '0', gap: '0.60rem' }}>
                       <div
                         className="border-round overflow-hidden "
                         style={{
@@ -380,7 +413,7 @@ function ArtistDetail() {
                           <Image
                             src={defaultAlbumCover}
                             alt={`Capa padrão - ${album.nome}`}
-                            style={{ width: '100%', height: '40.5vh'}}
+                            style={{ width: '100%', height: '27vh'}}
                             imageStyle={{
                                width: '100%', 
                                height: '100%', 
@@ -390,26 +423,19 @@ function ArtistDetail() {
                         )}
                       </div>
 
-                      <div className="flex flex-column gap-2 p-3 pt-2">
+                      <div className="flex flex-column gap-2 px-3 ">
                         <div className="flex flex-row justify-content-between align-items-center">
-                        <span className="font-semibold text-lg" style={{ wordBreak: 'break-word' }}>{album.nome}</span>
+                        <span className=" text-base font-bold" style={{ wordBreak: 'break-word' }}>{album.nome}</span>
 
 
-                            <div className="flex gap-2 h-2rem">
+                            <div className="flex ">
                               <Button
-                                icon="pi pi-trash"
-                                className="p-button-sm p-button-danger p-1"
-                                onClick={async (event) => {
+                                icon="pi pi-ellipsis-v"
+                                className="p-button-sm p-button-text p-button-plain p-1"
+                                onClick={(event) => {
                                   event.stopPropagation();
-                                  const confirmed = window.confirm('Deseja excluir este álbum?');
-                                  if (!confirmed) return;
-                                  try {
-                                    await albumService.deleteAlbum(album.id);
-                                    toast.success('Álbum excluído com sucesso!');
-                                    await fetchAlbuns();
-                                  } catch (error: any) {
-                                    toast.error(error.message || 'Erro ao excluir álbum');
-                                  }
+                                  setMenuAlbum(album);
+                                  albumMenuRef.current?.toggle(event);
                                 }}
                               />
                             </div>
@@ -436,6 +462,41 @@ function ArtistDetail() {
           </>
         )}
       </main>
+
+      <Dialog
+        header="Confirmar exclusão"
+        visible={deleteDialogVisible}
+        onHide={() => {
+          setDeleteDialogVisible(false);
+          setAlbumToDelete(null);
+        }}
+        style={{ width: '26rem' }}
+        modal
+      >
+        <p className="m-0">
+          Tem certeza que deseja excluir este álbum?
+        </p>
+        <div className="flex justify-content-end gap-2 mt-4">
+          <Button
+            label="Cancelar"
+            className="p-button-text"
+            onClick={() => {
+              setDeleteDialogVisible(false);
+              setAlbumToDelete(null);
+            }}
+          />
+          <Button
+            label="Excluir"
+            className="p-button-danger"
+            onClick={async () => {
+              if (!albumToDelete) return;
+              await handleDeleteAlbum(albumToDelete);
+              setDeleteDialogVisible(false);
+              setAlbumToDelete(null);
+            }}
+          />
+        </div>
+      </Dialog>
 
       <AlbumModal
         visible={albumModalVisible}
@@ -508,3 +569,4 @@ function ArtistDetail() {
 }
 
 export default ArtistDetail;
+
