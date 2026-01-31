@@ -37,3 +37,34 @@ body {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
   border-color: rgb(186, 104, 200);
 }
+
+.album-menu.p-menu {
+  min-width: 14rem;
+  background: #1b1a1f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  padding: 0.35rem;
+}
+
+.album-menu .p-menuitem-link {
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+}
+
+.album-menu .p-menuitem-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.album-menu .p-menuitem-link:focus {
+  box-shadow: none;
+}
+
+.album-menu .p-menuitem-text {
+  color: #f3f4f6;
+  font-weight: 600;
+}
+
+.album-menu .p-menuitem-icon {
+  color: #f87171;
+}
