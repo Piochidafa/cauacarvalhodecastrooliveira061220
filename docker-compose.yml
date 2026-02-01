@@ -14,8 +14,11 @@ services:
       SPRING_DATASOURCE_USERNAME: petDB
       SPRING_DATASOURCE_PASSWORD: cWjxWoosUZxljCBmorNBAIpv4OX8VMWE
       MINIO_ENDPOINT: http://minio:9000
+      MINIO_PUBLIC_ENDPOINT: http://host.docker.internal:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
         condition: service_healthy
@@ -24,6 +27,20 @@ services:
     networks:
       - pet-network
 
+  front-end:
+    build:
+      context: ./pet-front
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8083
+    container_name: pet_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - back-end
+    networks:
+      - pet-network
 
   postgres:
     image: postgres:16
