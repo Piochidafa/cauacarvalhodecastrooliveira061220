@@ -1,7 +1,7 @@
 -- Seed: Usuário de teste
 -- Senha: bambam (BCrypt hash)
 INSERT INTO tb_users (username, password, role) 
-VALUES ('cleber', '$2a$10$sw.5DBECiZjXgmHGe6ahquByAiqP5YgsqnWI/3HYRNzbEoHXVqgd6', 'ADMIN');
+VALUES ('admin', '$2a$10$MzRR9e/HTyzt0/0tjbzkauK5NEYuths0kQWqug3CMPJIjA.Lq2LE2', 'ADMIN');
 
 -- Seed: Regionais
 INSERT INTO tb_regional (nome, ativo) VALUES
@@ -11,29 +11,26 @@ INSERT INTO tb_regional (nome, ativo) VALUES
 
 -- Seed: Artistas
 INSERT INTO tb_artista (nome, created_at) VALUES
-    ('Caetano Veloso', NOW()),
-    ('Gilberto Gil', NOW()),
-    ('Chico Buarque', NOW()),
-    ('Maria Bethânia', NOW()),
-    ('Elis Regina', NOW()),
-    ('Tom Jobim', NOW()),
-    ('Vinícius de Moraes', NOW()),
-    ('Milton Nascimento', NOW());
+    ('Serj Tankian', NOW()),
+    ('Mike Shinoda', NOW()),
+    ('Michel Teló', NOW()),
+    ('Guns N’ Roses', NOW());
 
 -- Seed: Álbuns
 INSERT INTO tb_album (nome, artista_id, regional_id, created_at) VALUES
-    ('Robson', 1, 1, NOW()),
-    ('Estrangeiro', 1, 1, NOW()),
-    ('Expresso 2222', 2, 1, NOW()),
-    ('Refavela', 2, 1, NOW()),
-    ('Construção', 3, 1, NOW()),
-    ('Ópera do Malandro', 3, 1, NOW()),
-    ('Álibi', 4, 1, NOW()),
-    ('Drama', 4, 1, NOW()),
-    ('Elis & Tom', 5, 1, NOW()),
-    ('Falso Brilhante', 5, 1, NOW()),
-    ('Wave', 6, 1, NOW()),
-    ('Matita Perê', 6, 1, NOW()),
-    ('Arca de Noé', 7, 1, NOW()),
-    ('Clube da Esquina', 8, 1, NOW()),
-    ('Geraes', 8, 1, NOW());
+    ('Harakiri', 1, 1, NOW()),
+    ('Black Blooms', 1, 1, NOW()),
+    ('The Rough Dog', 1, 1, NOW()),
+
+    ('The Rising Tied', 2, 1, NOW()),
+    ('Post Traumatic', 2, 1, NOW()),
+    ('Post Traumatic EP', 2, 1, NOW()),
+    ('Where’d You Go', 2, 1, NOW()),
+
+    ('Bem Sertanejo', 3, 1, NOW()),
+    ('Bem Sertanejo - O Show (Ao Vivo)', 3, 1, NOW()),
+    ('Bem Sertanejo - (1ª Temporada) - EP', 3, 1, NOW()),
+
+    ('Use Your Illusion I', 4, 1, NOW()),
+    ('Use Your Illusion II', 4, 1, NOW()),
+    ('Greatest Hits', 4, 1, NOW());
