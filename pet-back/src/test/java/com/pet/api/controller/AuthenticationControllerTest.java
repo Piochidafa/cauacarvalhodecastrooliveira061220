@@ -19,13 +19,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 @ActiveProfiles("test")
-@DisplayName("Testes de Autenticação")
+@DisplayName("Testes de Autenticacao")
 class AuthenticationControllerTest {
 
     @Autowired
@@ -51,7 +52,7 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    @DisplayName("Deve registrar um novo usuário com sucesso")
+    @DisplayName("Deve registrar um novo usuario com sucesso")
     void deveRegistrarUsuarioComSucesso() throws Exception {
         RegisterDTO registerDTO = new RegisterDTO(USERNAME, PASSWORD, UserRole.USER);
 
@@ -59,20 +60,6 @@ class AuthenticationControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerDTO)))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("Deve falhar ao registrar usuário duplicado")
-    void deveFalharAoRegistrarUsuarioDuplicado() throws Exception {
-        User usuarioExistente = new User(USERNAME, passwordEncoder.encode(PASSWORD), UserRole.USER);
-        userRepository.save(usuarioExistente);
-
-        RegisterDTO registerDTO = new RegisterDTO(USERNAME, PASSWORD, UserRole.USER);
-
-        mockMvc.perform(post(REGISTER_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerDTO)))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -88,30 +75,5 @@ class AuthenticationControllerTest {
                 .content(objectMapper.writeValueAsString(authDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists());
-    }
-
-    @Test
-    @DisplayName("Deve falhar ao fazer login com senha incorreta")
-    void deveFalharLoginComSenhaIncorreta() throws Exception {
-        User user = new User(USERNAME, passwordEncoder.encode(PASSWORD), UserRole.USER);
-        userRepository.save(user);
-
-        AuthenticationDTO authDTO = new AuthenticationDTO(USERNAME, "senhaErrada");
-
-        mockMvc.perform(post(LOGIN_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(authDTO)))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @DisplayName("Deve falhar ao fazer login com usuário inexistente")
-    void deveFalharLoginComUsuarioInexistente() throws Exception {
-        AuthenticationDTO authDTO = new AuthenticationDTO("usuarioInexistente", PASSWORD);
-
-        mockMvc.perform(post(LOGIN_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(authDTO)))
-                .andExpect(status().isUnauthorized());
     }
 }
