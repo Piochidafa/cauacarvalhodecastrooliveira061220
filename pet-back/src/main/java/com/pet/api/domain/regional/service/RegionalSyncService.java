@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,17 +65,18 @@ public class RegionalSyncService {
 
             List<Regional> regionaisAtivasNoBanco = regionalRepository.findByAtivo(true);
 
-            List<String> nomesNaAPI = regionaisFiltradas.stream()
+            Set<String> nomesNaAPI = regionaisFiltradas.stream()
                     .map(RegionalExternalDTO::nome)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
+
+            Set<String> nomesAtivosNoBanco = regionaisAtivasNoBanco.stream()
+                    .map(Regional::getNome)
+                    .collect(Collectors.toSet());
 
             for (RegionalExternalDTO regionalAPI : regionaisFiltradas) {
-                Regional regionalAtiva = regionalRepository.findByNomeAndAtivo(regionalAPI.nome(), true);
-
-                if (regionalAtiva == null) {
-                    Regional regionalInativa = regionalRepository.findByNome(regionalAPI.nome());
-
-                    if (regionalInativa != null && Boolean.FALSE.equals(regionalInativa.getAtivo())) {
+                if (!nomesAtivosNoBanco.contains(regionalAPI.nome())) {
+                    Regional regionalInativa = regionalRepository.findByNomeAndAtivo(regionalAPI.nome(), false);
+                    if (regionalInativa != null) {
                         regionalInativa.setAtivo(true);
                         regionalRepository.save(regionalInativa);
                         logger.info("Regional reativada: {}", regionalAPI.nome());
