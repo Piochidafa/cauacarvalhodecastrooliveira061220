@@ -28,6 +28,15 @@ public class MinioService {
     @Value("${minio.bucket-name}")
     private String bucketName;
 
+    @Value("${minio.access-key}")
+    private String accessKey;
+
+    @Value("${minio.secret-key}")
+    private String secretKey;
+
+    @Value("${minio.public-endpoint:${minio.endpoint}}")
+    private String publicEndpoint;
+
     @EventListener(ApplicationReadyEvent.class)
     public void initializeBucket() {
         try {
@@ -123,17 +132,28 @@ public class MinioService {
 
     public String getFileUrl(String objectKey) {
         try {
-            return minioClient.getPresignedObjectUrl(
+            MinioClient presignClient = getPresignClient();
+            return presignClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .bucket(bucketName)
                             .object(objectKey)
                             .method(io.minio.http.Method.GET)
-                            .expiry(30 * 60) // 1 hora
+                            .expiry(30 * 60) // 30 minutos
                             .build()
             );
         } catch (Exception e) {
             logger.error("Erro ao gerar URL do arquivo: {}", e.getMessage(), e);
             return null;
         }
+    }
+
+    private MinioClient getPresignClient() {
+        if (publicEndpoint == null || publicEndpoint.isBlank()) {
+            return minioClient;
+        }
+        return MinioClient.builder()
+                .endpoint(publicEndpoint)
+                .credentials(accessKey, secretKey)
+                .build();
     }
 }
