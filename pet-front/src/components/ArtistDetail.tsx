@@ -468,13 +468,13 @@ function ArtistDetail() {
         style={{ width: '26rem' }}
         modal
       >
-        <p className="m-0">
+        <p className="m-0 p-2">
           Tem certeza que deseja excluir este álbum?
         </p>
-        <div className="flex justify-content-end gap-2 mt-4">
+        <div className="flex justify-content-end gap-2 mt-4 p-3">
           <Button
             label="Cancelar"
-            className="p-button-text"
+            className="p-button-text p-1"
             onClick={() => {
               setDeleteDialogVisible(false);
               setAlbumToDelete(null);
@@ -482,7 +482,7 @@ function ArtistDetail() {
           />
           <Button
             label="Excluir"
-            className="p-button-danger"
+            className="p-button-danger p-1"
             onClick={async () => {
               if (!albumToDelete) return;
               await handleDeleteAlbum(albumToDelete);
