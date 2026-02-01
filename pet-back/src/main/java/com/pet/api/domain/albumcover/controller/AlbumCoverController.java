@@ -55,6 +55,23 @@ public class AlbumCoverController {
         }
     }
 
+    @PostMapping(value = "/upload-multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Faz upload de múltiplas capas de álbum")
+    public ResponseEntity<List<AlbumCover>> uploadAlbumCovers(
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestParam(value = "albumId", required = false) Long albumId
+    ) {
+        if (files == null || files.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            List<AlbumCover> albumCovers = albumCoverService.createAlbumCovers(albumId, files);
+            return ResponseEntity.ok(albumCovers);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Obtém capa de álbum por ID")
     public AlbumCover getAlbumCoverById(@PathVariable Long id){

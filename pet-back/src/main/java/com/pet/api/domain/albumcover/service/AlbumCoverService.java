@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -40,6 +41,27 @@ public class AlbumCoverService {
         }
         albumCover.setObjectKey(objectKey);
         return albumCoverRepository.save(albumCover);
+    }
+
+    public List<AlbumCover> createAlbumCovers(Long albumId, List<MultipartFile> files) throws IOException {
+        Album album = null;
+        if (albumId != null) {
+            album = albumRepository.findById(albumId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Álbum com ID " + albumId + " não encontrado"));
+        }
+
+        List<AlbumCover> covers = new ArrayList<>();
+        for (MultipartFile file : files) {
+            String objectKey = minioService.uploadFile(file);
+            AlbumCover albumCover = new AlbumCover();
+            if (album != null) {
+                albumCover.setAlbum(album);
+            }
+            albumCover.setObjectKey(objectKey);
+            covers.add(albumCover);
+        }
+
+        return albumCoverRepository.saveAll(covers);
     }
 
     public AlbumCover createAlbumCoverWithKey(Long albumId, String objectKey) {
