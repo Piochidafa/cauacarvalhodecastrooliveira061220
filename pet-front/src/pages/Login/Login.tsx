@@ -26,7 +26,7 @@ function Login() {
         setLoading(true);
 
         try {
-            const response = await authFacade.login({ username, password });
+            await authFacade.login({ username, password });
             // console.log("Login realizado com sucesso:", response);
             
             // Disparar evento customizado para atualizar o menu

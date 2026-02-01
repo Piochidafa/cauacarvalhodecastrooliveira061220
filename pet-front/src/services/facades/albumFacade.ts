@@ -1,6 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
 import albumService from '../api/albumService';
-import type { Album, CreateAlbumRequest, PaginatedResponse } from '../types/artista.types';
+import type { Album, CreateAlbumRequest } from '../types/artista.types';
 
 class AlbumFacade {
   private albunsSubject = new BehaviorSubject<Album[]>([]);

@@ -32,7 +32,8 @@ function AlbumForm() {
       const albumData = await albumFacade.getAlbum(parseInt(id));
       if (albumData) {
         setAlbum(albumData);
-        setArtistaId(albumData.artistaId); // Pega o artistaId do álbum
+        const resolvedArtistaId = albumData.artista?.id ?? (albumData as any).artistaId;
+        setArtistaId(resolvedArtistaId); // Pega o artistaId do álbum
         setModalVisible(true);
       }
     } catch (err) {
@@ -79,3 +80,4 @@ function AlbumForm() {
 }
 
 export default AlbumForm;
+

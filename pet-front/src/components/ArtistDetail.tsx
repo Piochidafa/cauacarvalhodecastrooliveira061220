@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
-import { InputText } from 'primereact/inputtext';
 import { Paginator } from 'primereact/paginator';
 import { Menu } from 'primereact/menu';
 import { Dialog } from 'primereact/dialog';
@@ -41,8 +40,8 @@ function ArtistDetail() {
   const [editArtistPreviewUrl, setEditArtistPreviewUrl] = useState<string | null>(null);
   const [editCurrentImageUrl, setEditCurrentImageUrl] = useState<string | null>(null);
   const [updatingArtist, setUpdatingArtist] = useState(false);
-  const [albumSearchTerm, setAlbumSearchTerm] = useState('');
-  const [albumSortOrder, setAlbumSortOrder] = useState<'asc' | 'desc'>('asc');
+  const albumSearchTerm = '';
+  const albumSortOrder: 'asc' | 'desc' = 'asc';
   const [albumPage, setAlbumPage] = useState(0);
   const [albumRows, setAlbumRows] = useState(8);
   const [albumTotalRecords, setAlbumTotalRecords] = useState(0);
@@ -170,10 +169,6 @@ function ArtistDetail() {
     }
   };
 
-
-  const handleToggleAlbumSort = () => {
-    setAlbumSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'));
-  };
 
   const handleDeleteAlbum = async (album: Album) => {
     try {

@@ -1,6 +1,6 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import regionalService from '../api/regionalService';
-import type { Regional, CreateRegionalRequest, PaginatedResponse } from '../types/regional.types';
+import type { Regional, CreateRegionalRequest } from '../types/regional.types';
 
 class RegionalFacade {
   private regionalsSubject = new BehaviorSubject<Regional[]>([]);

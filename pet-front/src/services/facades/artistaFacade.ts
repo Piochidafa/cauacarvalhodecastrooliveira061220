@@ -1,6 +1,6 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import artistaService from '../api/artistaService';
-import type { Artista, CreateArtistaRequest, PaginatedResponse } from '../types/artista.types';
+import type { Artista, CreateArtistaRequest } from '../types/artista.types';
 
 class ArtistFacade {
   private artistasSubject = new BehaviorSubject<Artista[]>([]);
