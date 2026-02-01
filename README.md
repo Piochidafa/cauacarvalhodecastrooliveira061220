@@ -25,6 +25,7 @@ docker compose up --build
 
 2) Acessos:
 - Front: http://localhost:5173
+- - User: admin, pass: admin
 - API: http://localhost:8083
 - MinIO Console: http://localhost:9001
 - Health (API): http://localhost:8083/actuator/health
