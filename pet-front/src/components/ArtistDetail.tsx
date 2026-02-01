@@ -296,7 +296,7 @@ function ArtistDetail() {
                       }
                       setEditDialogVisible(true);
                     }}
-                    className="p-button-outlined p-button-sm"
+                    className="p-button-outlined p-button-sm gap-2"
                     style={{ padding: '0.45vh 0.9vh' }}
                   />
                 </motion.div>

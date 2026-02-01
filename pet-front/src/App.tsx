@@ -50,14 +50,15 @@ function AppContent() {
       toast.custom((t) => (
         <div
           style={{
-            background: '#fff7ed',
-            color: '#9a3412',
-            border: '1px solid #fed7aa',
+            background: '#1b1a1f',
+            color: '#f3f4f6',
+            border: '1px solid rgba(186, 104, 200, 0.5)',
             padding: '0.75rem 1rem',
-            borderRadius: '8px',
+            borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.75rem'
+            gap: '0.75rem',
+            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.35)'
           }}
         >
           <span>Sessão expira em {remainingMinutes} min.</span>
@@ -67,18 +68,19 @@ function AppContent() {
               handleRefreshSession();
             }}
             style={{
-              background: '#f97316',
-              color: '#fff',
-              border: 'none',
+              background: '#ba68c8',
+              color: '#1b1a1f',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               padding: '0.35rem 0.75rem',
-              borderRadius: '6px',
-              cursor: 'pointer'
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 600
             }}
           >
             Renovar agora
           </button>
         </div>
-      ), { duration: 3000 });
+      ), { duration: 8000 });
     }
   }, []);
 

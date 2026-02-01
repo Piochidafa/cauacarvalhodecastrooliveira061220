@@ -123,7 +123,7 @@ function ArtistCreateModal({
             <img
               src={imageUrlToShow}
               alt="Pré-visualização do artista"
-              style={{ width: '100%', borderRadius: '6px' }}
+              style={{ width: '40%', borderRadius: '2vh' }}
             />
             {onRemoveImage && (
               <div className="pt-2">
