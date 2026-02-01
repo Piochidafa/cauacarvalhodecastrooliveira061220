@@ -9,7 +9,7 @@ import { Client } from '@stomp/stompjs';
 import { motion } from 'motion/react';
 import albumCoverService from '../services/api/albumCoverService';
 import regionalFacade from '../services/facades/regionalFacade';
-import type { CreateAlbumRequest, Album } from '../services/types/artista.types';
+import type { CreateAlbumRequest, Album, AlbumCover } from '../services/types/artista.types';
 import type { Regional } from '../services/types/regional.types';
 
 interface AlbumModalProps {
@@ -31,19 +31,21 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
     ...regional,
     id: Number(regional.id)
   }));
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [existingCovers, setExistingCovers] = useState<AlbumCover[]>([]);
+  const [removingCoverId, setRemovingCoverId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
-  const fileRef = useRef<File | null>(null);
+  const fileRef = useRef<File[]>([]);
   const stompClient = useRef<Client | null>(null);
   const [connected, setConnected] = useState(false);
   const currentAlbumId = useRef<number | undefined>(album?.id);
   const isEditing = Boolean(album?.id);
 
   const uploadCoverIfNeeded = async (albumId: number | undefined, replaceExisting: boolean) => {
-    const pendingFile = fileRef.current;
-    if (!pendingFile) return;
+    const pendingFiles = fileRef.current;
+    if (!pendingFiles || pendingFiles.length === 0) return;
     if (!albumId) {
       toast.error('Não foi possível enviar a capa: álbum sem ID');
       return;
@@ -55,11 +57,11 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
         const existingCovers = await albumCoverService.getCoversByAlbumId(albumId);
         await Promise.all(existingCovers.map((cover) => albumCoverService.deleteCover(cover.id)));
       }
-      await albumCoverService.uploadCover(pendingFile, albumId);
-      toast.success('Capa enviada com sucesso!');
-      setFile(null);
-      setPreviewUrl(null);
-      fileRef.current = null;
+      await albumCoverService.uploadCovers(pendingFiles, albumId);
+      toast.success('Capa(s) enviada(s) com sucesso!');
+      setFiles([]);
+      setPreviewUrls([]);
+      fileRef.current = [];
     } catch (error) {
       console.error('Erro ao enviar capa:', error);
       toast.error('Erro ao enviar capa do álbum');
@@ -101,7 +103,7 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
           const response = JSON.parse(message.body);
           if (response.action === 'UPDATE_SUCCESS') {
             (async () => {
-              await uploadCoverIfNeeded(response?.data?.id ?? currentAlbumId.current, true);
+              await uploadCoverIfNeeded(response?.data?.id ?? currentAlbumId.current, false);
               toast.success('Álbum atualizado com sucesso!');
               onSuccess();
               onHide();
@@ -133,8 +135,8 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   }, []);
 
   useEffect(() => {
-    fileRef.current = file;
-  }, [file]);
+    fileRef.current = files;
+  }, [files]);
 
   useEffect(() => {
     loadRegionals();
@@ -168,23 +170,55 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
         artistaId: artistaId,
         regionalId: 0
       });
-      setFile(null);
+      setFiles([]);
+      setPreviewUrls([]);
     }
   }, [album, visible, artistaId]);
 
   useEffect(() => {
-    if (!file) {
-      setPreviewUrl(null);
+    if (!album?.id) {
+      setExistingCovers([]);
+      return;
+    }
+    const loadCovers = async () => {
+      try {
+        const covers = await albumCoverService.getCoversByAlbumId(album.id);
+        setExistingCovers(covers);
+      } catch (error) {
+        console.error('Erro ao carregar capas:', error);
+        setExistingCovers([]);
+      }
+    };
+    void loadCovers();
+  }, [album?.id]);
+
+  const handleRemoveCover = async (coverId: number) => {
+    try {
+      setRemovingCoverId(coverId);
+      await albumCoverService.deleteCover(coverId);
+      setExistingCovers((covers) => covers.filter((cover) => cover.id !== coverId));
+      toast.success('Capa removida com sucesso!');
+    } catch (error) {
+      console.error('Erro ao remover capa:', error);
+      toast.error('Erro ao remover capa');
+    } finally {
+      setRemovingCoverId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!files || files.length === 0) {
+      setPreviewUrls([]);
       return;
     }
 
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(urls);
 
     return () => {
-      URL.revokeObjectURL(url);
+      urls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [file]);
+  }, [files]);
 
   const loadRegionals = async () => {
     await regionalFacade.loadRegionals(0, 100);
@@ -242,7 +276,7 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   const handleFileSelect = (event: any) => {
     const files = event.files;
     if (files && files.length > 0) {
-      setFile(files[0]);
+      setFiles(files);
     } else {
       console.warn('Nenhum arquivo encontrado no event');
     }
@@ -251,9 +285,9 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   const handleCustomUpload = (event: any) => {
     const files = event.files;
     if (files && files.length > 0) {
-      setFile(files[0]);
+      setFiles(files);
       toast.success('Arquivo pronto para envio');
-    } else if (file) {
+    } else if (fileRef.current.length > 0) {
       toast.success('Arquivo pronto para envio');
     } else {
       toast.error('Selecione uma imagem antes de enviar');
@@ -261,19 +295,20 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   };
 
   const footer = (
-    <div className="flex gap-2 justify-content-end">
+    <div className="flex gap-2 justify-content-end p-3 ">
       <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
         <Button
           label="Cancelar"
           icon="pi pi-times"
           onClick={onHide}
-          className="p-button-text"
+          className="p-button-text p-1 gap-1"
           disabled={loading || uploadingCover}
         />
       </motion.div>
       <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
         <Button
           label="Salvar"
+          className='p-1 gap-1'
           icon="pi pi-check"
           type="submit"
           form="album-form"
@@ -290,7 +325,7 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
       modal
       draggable={false}
       visible={visible}
-      style={{ width: '480px', maxWidth: '92vw' }}
+      style={{ width: '60vw', maxWidth: '92vw' }}
       headerStyle={{ padding: '1.25rem 1.25rem 0.75rem' }}
       contentStyle={{ padding: 0 }}
       onHide={onHide}
@@ -342,7 +377,7 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
               id="nome"
               value={formData.nome}
               onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-              className="w-full"
+              className="w-full p-1"
               placeholder="Ex: Nome do album"
               required
               disabled={loading}
@@ -359,7 +394,7 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
             optionLabel="nome"
             optionValue="id"
             placeholder="Selecionar região"
-            className="w-full"
+            className="w-full p-1"
             required
             disabled={loading}
           />
@@ -368,30 +403,78 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
         <div className="field">
           <label htmlFor="capa">Capa do Álbum</label>
           <FileUpload
-            mode="advanced"
+            mode="basic"
+            className='gap-1 p-1'
             name="capa"
+            headerStyle={{
+              color: 'gray',
+              height: '20rem'
+            }}
             accept="image/*"
             maxFileSize={10000000}
             onSelect={handleFileSelect}
             auto={false}
-            chooseLabel="Adicionar imagem"
+            chooseLabel="Adicionar imagens"
             uploadLabel="Upload"
             cancelLabel="Remover"
             disabled={loading || uploadingCover}
             customUpload
             uploadHandler={handleCustomUpload}
+            multiple
           />
-          {previewUrl && (
+          {existingCovers.length > 0 && (
             <div className="mt-3">
-              <img
-                src={previewUrl}
-                alt="Pré-visualização da capa"
-                style={{ maxWidth: '100%', borderRadius: '6px' }}
-              />
+              <small className="font-md">Capas atuais:</small>
+              <div className="grid mt-2">
+                {existingCovers.map((cover) => (
+                  <div key={cover.id} className="col-3">
+                    {cover.url ? (
+                      <div className="relative">
+                        <img
+                          src={cover.url}
+                          alt="Capa atual"
+                          className="border-2"
+                          style={{ width: '100%', height: '16rem', objectFit: 'cover', borderRadius: '3vh' }}
+                        />
+                        <Button
+                          icon="pi pi-trash"
+                          className="p-button-danger p-button-rounded p-button-sm"
+                          style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}
+                          onClick={() => void handleRemoveCover(cover.id)}
+                          loading={removingCoverId === cover.id}
+                          disabled={removingCoverId === cover.id}
+                        />
+                      </div>
+                    ) : (
+                      <div className="surface-100 border-round p-3 text-500 text-sm">
+                        Capa sem pré-visualização
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-          {file && (
-            <small className="text-500">Arquivo selecionado: {file.name}</small>
+          {previewUrls.length > 0 && (
+            <div className="mt-3">
+              <small className="text-500">Novas capas:</small>
+              <div className="grid mt-2">
+                {previewUrls.map((previewUrl, index) => (
+                  <div key={`${previewUrl}-${index}`} className="col-3">
+                    <img
+                      src={previewUrl}
+                      alt="Pré-visualização da capa"
+                      style={{ width: '100%', height: '12rem', objectFit: 'cover', borderRadius: '6px' }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {files.length > 0 && (
+            <small className="text-500">
+              Arquivos selecionados: {files.map((file) => file.name).join(', ')}
+            </small>
           )}
         </div>
       </motion.form>

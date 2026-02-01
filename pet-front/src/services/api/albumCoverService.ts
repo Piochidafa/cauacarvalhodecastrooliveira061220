@@ -15,6 +15,27 @@ class AlbumCoverService {
     return response.data;
   }
 
+  async uploadCovers(files: File[], albumId: number): Promise<AlbumCover[]> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('albumId', albumId.toString());
+
+    try {
+      const response = await api.post<AlbumCover[]>('/v1/album-cover/upload-multiple', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      // Fallback para o endpoint antigo caso o múltiplo não esteja disponível
+      const uploaded = await Promise.all(files.map((file) => this.uploadCover(file, albumId)));
+      return uploaded;
+    }
+  }
+
   async getCoversByAlbumId(albumId: number): Promise<AlbumCover[]> {
     const response = await api.get<AlbumCover[]>(`/v1/album-cover/album/${albumId}`);
     return response.data;
