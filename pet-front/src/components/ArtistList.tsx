@@ -122,11 +122,22 @@ function ArtistList() {
 
 		setCreatingArtist(true);
 		try {
-			const created = await artistaFacade.createArtista({
-				nome: newArtistName.trim(),
-			});
+			const created = await artistaFacade.createArtista(
+				{
+					nome: newArtistName.trim(),
+				},
+				{ refreshList: false },
+			);
+			let finalArtist = created;
 			if (created?.id && newArtistImageFile) {
-				await artistaFacade.uploadArtistaImage(created.id, newArtistImageFile);
+				const uploaded = await artistaFacade.uploadArtistaImage(
+					created.id,
+					newArtistImageFile,
+					{ refreshList: false },
+				);
+				if (uploaded) {
+					finalArtist = uploaded;
+				}
 			}
 			toast.success("Artista criado com sucesso!");
 			setCreateDialogVisible(false);
@@ -136,7 +147,10 @@ function ArtistList() {
 				URL.revokeObjectURL(newArtistPreviewUrl);
 				setNewArtistPreviewUrl(null);
 			}
-			await loadArtistas();
+			if (finalArtist && !searchTerm.trim() && page === 0) {
+				setArtistas((prev) => [finalArtist, ...prev].slice(0, rows));
+				setTotalRecords((prev) => prev + 1);
+			}
 		} catch (error: any) {
 			toast.error(error.message || "Erro ao criar artista");
 		} finally {
