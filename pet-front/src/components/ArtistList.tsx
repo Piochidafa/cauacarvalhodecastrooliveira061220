@@ -46,7 +46,6 @@ function ArtistList() {
 	useEffect(() => {
 		const fetchArtistas = async () => {
 			try {
-				console.log("Carregando artistas com página:", page, "linhas:", rows);
 				if (searchTerm.trim()) {
 					await artistaFacade.searchArtistas(
 						searchTerm,
@@ -66,26 +65,21 @@ function ArtistList() {
 	}, [page, rows, sortOrder]);
 
 	useEffect(() => {
-		console.log("Subscribe effect mounted");
 		const artistasSubscription = artistaFacade.artistas$.subscribe(
 			(newArtistas) => {
-				console.log("Artistas atualizados:", newArtistas);
 				setArtistas(newArtistas);
 			},
 		);
 		const loadingSubscription = artistaFacade.loading$.subscribe(
 			(loadingState) => {
-				console.log("Loading state:", loadingState);
 				setLoading(loadingState);
 			},
 		);
 		const errorSubscription = artistaFacade.error$.subscribe((error) => {
-			console.log("Error:", error);
 			if (error) toast.error(error);
 		});
 		const paginationSubscription = artistaFacade.pagination$.subscribe(
 			(pagination) => {
-				console.log("Pagination:", pagination);
 				setTotalRecords(pagination.totalElements);
 			},
 		);
