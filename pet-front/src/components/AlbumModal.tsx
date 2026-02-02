@@ -9,12 +9,12 @@ import { Client } from '@stomp/stompjs';
 import { motion } from 'motion/react';
 import albumCoverService from '../services/api/albumCoverService';
 import regionalFacade from '../services/facades/regionalFacade';
-import type { CreateAlbumRequest, Album, AlbumCover, AlbumSummary } from '../services/types/artista.types';
+import type { CreateAlbumRequest, Album, AlbumCover, AlbumLike } from '../services/types/artista.types';
 import type { Regional } from '../services/types/regional.types';
 
 interface AlbumModalProps {
   visible: boolean;
-  album?: Album | AlbumSummary | null;
+  album?: AlbumLike | null;
   artistaId?: number;
   onHide: () => void;
   onSuccess: () => void;
@@ -82,7 +82,6 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
       onConnect: () => {
         setConnected(true);
 
-        // Inscrever-se em tópicos
         client.subscribe('/topic/album/created', (message) => {
           const response = JSON.parse(message.body);
           if (response.action === 'CREATE_SUCCESS') {
@@ -227,7 +226,6 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validações
     if (!formData.nome?.trim()) {
       toast.error('Nome do álbum é obrigatório');
       return;

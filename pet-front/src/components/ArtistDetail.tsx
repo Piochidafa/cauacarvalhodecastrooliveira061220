@@ -8,7 +8,7 @@ import { Menu } from 'primereact/menu';
 import { Dialog } from 'primereact/dialog';
 import artistaFacade from '../services/facades/artistaFacade';
 import albumService from '../services/api/albumService';
-import type { Album, AlbumSummary, ArtistaDetailPagedResponse } from '../services/types/artista.types';
+import type { AlbumLike, AlbumSummary, ArtistaDetailPagedResponse } from '../services/types/artista.types';
 import { Image } from 'primereact/image';
 import AlbumModal from './AlbumModal';
 import ArtistCreateModal from './ArtistCreateModal';
@@ -33,7 +33,7 @@ function ArtistDetail() {
   const [coverUrls, setCoverUrls] = useState<Record<number, string[]>>({});
   const [cachedCoverUrls, setCachedCoverUrls] = useState<Record<number, string[]>>({});
   const [albumModalVisible, setAlbumModalVisible] = useState(false);
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | AlbumSummary | null>(null);
+  const [selectedAlbum, setSelectedAlbum] = useState<AlbumLike | null>(null);
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [editArtistName, setEditArtistName] = useState('');
   const [editArtistImageFile, setEditArtistImageFile] = useState<File | null>(null);
@@ -47,9 +47,9 @@ function ArtistDetail() {
   const [albumTotalRecords, setAlbumTotalRecords] = useState(0);
   const [albumsLoading, setAlbumsLoading] = useState(false);
   const albumMenuRef = useRef<Menu>(null);
-  const [menuAlbum, setMenuAlbum] = useState<Album | AlbumSummary | null>(null);
+  const [menuAlbum, setMenuAlbum] = useState<AlbumLike | null>(null);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-  const [albumToDelete, setAlbumToDelete] = useState<Album | AlbumSummary | null>(null);
+  const [albumToDelete, setAlbumToDelete] = useState<AlbumLike | null>(null);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 14, scale: 0.98 },
@@ -163,7 +163,7 @@ function ArtistDetail() {
   };
 
 
-  const handleDeleteAlbum = async (album: Album | AlbumSummary) => {
+  const handleDeleteAlbum = async (album: AlbumLike) => {
     try {
       await albumService.deleteAlbum(album.id);
       toast.success('Álbum excluído com sucesso!');

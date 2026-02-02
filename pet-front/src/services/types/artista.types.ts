@@ -30,6 +30,8 @@ export interface AlbumSummary {
   capas?: AlbumCover[];
 }
 
+export type AlbumLike = Album | AlbumSummary;
+
 export interface AlbumCover {
   id: number;
   objectKey: string;
