@@ -1,4 +1,4 @@
-# Projeto Seletivo - API Pet + Front
+# Projeto Seletivo - API Pet(Portal de Entretenimento e Talento) + Front
 
 ## Dados da Inscricao
 - Nome: Caua Carvalho de Castro Oliveira
