@@ -21,6 +21,15 @@ export interface Album {
   capas?: AlbumCover[];
 }
 
+export interface AlbumSummary {
+  id: number;
+  nome: string;
+  createdAt: string;
+  updatedAt: string;
+  regional?: Regional;
+  capas?: AlbumCover[];
+}
+
 export interface AlbumCover {
   id: number;
   objectKey: string;
@@ -36,6 +45,17 @@ export interface PaginatedResponse<T> {
   totalElements: number;
   currentPage: number;
   pageSize: number;
+}
+
+export interface ArtistaDetailPagedResponse {
+  id: number;
+  nome: string;
+  imageKey?: string;
+  imageUrl?: string;
+  quantidadeAlbuns: number;
+  createdAt: string;
+  updatedAt: string;
+  albuns: PaginatedResponse<AlbumSummary>;
 }
 
 export interface CreateArtistaRequest {

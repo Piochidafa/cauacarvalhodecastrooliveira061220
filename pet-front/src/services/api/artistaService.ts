@@ -1,5 +1,5 @@
 import api from '../api/axiosConfig';
-import type { Artista, CreateArtistaRequest, PaginatedResponse } from '../types/artista.types';
+import type { Artista, ArtistaDetailPagedResponse, CreateArtistaRequest, PaginatedResponse } from '../types/artista.types';
 
 class ArtistaService {
   async getArtistas(page: number = 0, size: number = 10, sortBy: string = 'id', sortDir: string = 'asc'): Promise<PaginatedResponse<Artista>> {
@@ -33,6 +33,28 @@ class ArtistaService {
 
   async getArtistaById(id: number): Promise<Artista> {
     const response = await api.get<Artista>(`/v1/artista/${id}`);
+    return response.data;
+  }
+
+  async getArtistaDetailPaged(
+    id: number,
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'nome',
+    sortDir: string = 'asc',
+    nome?: string
+  ): Promise<ArtistaDetailPagedResponse> {
+    const params: Record<string, string | number> = {
+      page,
+      size,
+      sort: `${sortBy},${sortDir}`,
+    };
+    if (nome) {
+      params.nome = nome;
+    }
+    const response = await api.get<ArtistaDetailPagedResponse>(`/v1/artista/${id}/detail`, {
+      params,
+    });
     return response.data;
   }
 
