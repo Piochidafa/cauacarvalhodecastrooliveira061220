@@ -1,6 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
 import artistaService from '../api/artistaService';
-import type { Artista, CreateArtistaRequest } from '../types/artista.types';
+import type { Artista, ArtistaDetailPagedResponse, CreateArtistaRequest } from '../types/artista.types';
 
 class ArtistFacade {
   private artistasSubject = new BehaviorSubject<Artista[]>([]);
@@ -20,6 +20,10 @@ class ArtistFacade {
   loading$ = this.loadingSubject.asObservable();
   error$ = this.errorSubject.asObservable();
   pagination$ = this.paginationSubject.asObservable();
+
+  private resolveRefreshList(refreshList?: boolean): boolean {
+    return refreshList !== false;
+  }
 
   async loadArtistas(
     page: number = 0,
@@ -81,13 +85,37 @@ class ArtistFacade {
     }
   }
 
-  async createArtista(data: CreateArtistaRequest): Promise<Artista | null> {
+  async getArtistaDetailPaged(
+    id: number,
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'nome',
+    sortDir: string = 'asc',
+    nome?: string
+  ): Promise<ArtistaDetailPagedResponse | null> {
+    try {
+      this.loadingSubject.next(true);
+      this.errorSubject.next(null);
+      return await artistaService.getArtistaDetailPaged(id, page, size, sortBy, sortDir, nome);
+    } catch (error: any) {
+      this.errorSubject.next(error.message || 'Erro ao carregar artista');
+      return null;
+    } finally {
+      this.loadingSubject.next(false);
+    }
+  }
+
+  async createArtista(
+    data: CreateArtistaRequest,
+    options?: { refreshList?: boolean }
+  ): Promise<Artista | null> {
     try {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
       const artista = await artistaService.createArtista(data);
-      // Recarregar lista
-      await this.loadArtistas();
+      if (this.resolveRefreshList(options?.refreshList)) {
+        await this.loadArtistas();
+      }
       return artista;
     } catch (error: any) {
       this.errorSubject.next(error.message || 'Erro ao criar artista');
@@ -97,13 +125,18 @@ class ArtistFacade {
     }
   }
 
-  async updateArtista(id: number, data: CreateArtistaRequest): Promise<Artista | null> {
+  async updateArtista(
+    id: number,
+    data: CreateArtistaRequest,
+    options?: { refreshList?: boolean }
+  ): Promise<Artista | null> {
     try {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
       const artista = await artistaService.updateArtista(id, data);
-      // Recarregar lista
-      await this.loadArtistas();
+      if (this.resolveRefreshList(options?.refreshList)) {
+        await this.loadArtistas();
+      }
       return artista;
     } catch (error: any) {
       this.errorSubject.next(error.message || 'Erro ao atualizar artista');
@@ -113,13 +146,18 @@ class ArtistFacade {
     }
   }
 
-  async uploadArtistaImage(id: number, file: File): Promise<Artista | null> {
+  async uploadArtistaImage(
+    id: number,
+    file: File,
+    options?: { refreshList?: boolean }
+  ): Promise<Artista | null> {
     try {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
       const artista = await artistaService.uploadArtistaImage(id, file);
-      // Recarregar lista
-      await this.loadArtistas();
+      if (this.resolveRefreshList(options?.refreshList)) {
+        await this.loadArtistas();
+      }
       return artista;
     } catch (error: any) {
       this.errorSubject.next(error.message || 'Erro ao enviar imagem do artista');
@@ -129,13 +167,17 @@ class ArtistFacade {
     }
   }
 
-  async removeArtistaImage(id: number): Promise<Artista | null> {
+  async removeArtistaImage(
+    id: number,
+    options?: { refreshList?: boolean }
+  ): Promise<Artista | null> {
     try {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
       const artista = await artistaService.removeArtistaImage(id);
-      // Recarregar lista
-      await this.loadArtistas();
+      if (this.resolveRefreshList(options?.refreshList)) {
+        await this.loadArtistas();
+      }
       return artista;
     } catch (error: any) {
       this.errorSubject.next(error.message || 'Erro ao remover imagem do artista');
