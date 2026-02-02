@@ -1,11 +1,14 @@
 package com.pet.api.domain.artista.controller;
 
 import com.pet.api.domain.artista.dto.ArtistaDTO;
+import com.pet.api.domain.artista.dto.ArtistaDetailPageResponseDTO;
 import com.pet.api.domain.artista.dto.ArtistaDetailResponseDTO;
 import com.pet.api.domain.artista.dto.ArtistaResponseDTO;
 import com.pet.api.domain.artista.model.Artista;
 import com.pet.api.domain.artista.service.ArtistaService;
 import com.pet.api.domain.album.dto.AlbumResponseDTO;
+import com.pet.api.domain.album.model.Album;
+import com.pet.api.domain.album.service.AlbumService;
 import com.pet.api.domain.albumcover.dto.AlbumCoverResponseDTO;
 import com.pet.api.shared.service.MinioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +33,9 @@ public class ArtistaController {
 
     @Autowired
     ArtistaService artistaService;
+
+    @Autowired
+    AlbumService albumService;
 
     @Autowired
     MinioService minioService;
@@ -107,6 +113,34 @@ public class ArtistaController {
             .collect(Collectors.toList());
         
         return ArtistaDetailResponseDTO.fromArtista(artista, albuns);
+    }
+
+    @GetMapping("/{id}/detail")
+    @Operation(summary = "ObtÃ©m um artista por ID com Ã¡lbuns paginados")
+    public ArtistaDetailPageResponseDTO getArtistaDetailPaged(
+            @PathVariable Long id,
+            @RequestParam(required = false) String nome,
+            Pageable pageable
+    ){
+        Artista artista = artistaService.getById(id);
+        enrichImageUrl(artista);
+
+        Page<Album> albumPage = (nome != null && !nome.isBlank())
+                ? albumService.getAlbumsByNomeAndArtistaId(nome, id, pageable)
+                : albumService.getAlbumsByArtistaId(id, pageable);
+
+        Page<AlbumResponseDTO> albuns = albumPage.map(album -> {
+            var capas = album.getCapas().stream()
+                    .map(capa -> AlbumCoverResponseDTO.fromAlbumCover(
+                            capa,
+                            minioService.getFileUrl(capa.getObjectKey())
+                    ))
+                    .collect(Collectors.toList());
+
+            return AlbumResponseDTO.fromAlbum(album, capas);
+        });
+
+        return ArtistaDetailPageResponseDTO.fromArtista(artista, albuns);
     }
 
     @PutMapping("/{id}")
