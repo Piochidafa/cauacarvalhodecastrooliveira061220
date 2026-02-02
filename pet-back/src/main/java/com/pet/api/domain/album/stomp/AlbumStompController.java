@@ -32,11 +32,6 @@ public class AlbumStompController {
     @Autowired
     private MinioService minioService;
 
-    /**
-     * Cria um novo álbum com capa via STOMP
-     * Cliente envia para: /app/album/create
-     * Resposta publicada em: /topic/album/created
-     */
     @MessageMapping("/album/create")
     @SendTo("/topic/album/created")
     public AlbumStompResponse createAlbum(AlbumWithCoverDTO albumWithCoverDTO) {
@@ -46,7 +41,6 @@ public class AlbumStompController {
                 albumWithCoverDTO.fileName(),
                 albumWithCoverDTO.fileBase64() != null ? albumWithCoverDTO.fileBase64().length() : 0);
             
-            // Criar álbum
             AlbumDTO albumDTO = new AlbumDTO(
                 albumWithCoverDTO.nome(),
                 albumWithCoverDTO.artistaId(),
@@ -54,7 +48,6 @@ public class AlbumStompController {
             );
             Album album = albumService.createAlbum(albumDTO);
 
-            // Se houver imagem, fazer upload
             if (albumWithCoverDTO.fileBase64() != null && !albumWithCoverDTO.fileBase64().isEmpty()) {
                 try {
                     byte[] decodedBytes = java.util.Base64.getDecoder().decode(albumWithCoverDTO.fileBase64());
@@ -63,14 +56,11 @@ public class AlbumStompController {
                     logger.info("Capa enviada com sucesso para o álbum {}", album.getId());
                 } catch (Exception e) {
                     logger.error("Erro ao fazer upload da capa", e);
-                    // Continua mesmo com erro na capa
                 }
             }
 
-            // Recarregar álbum para pegar capas
             album = albumService.getById(album.getId());
             
-            // Converter capas para DTO
             var capasDTO = album.getCapas().stream()
                 .map(cover -> AlbumCoverResponseDTO.fromAlbumCover(
                     cover,
@@ -95,11 +85,6 @@ public class AlbumStompController {
         }
     }
 
-    /**
-     * Atualiza um álbum com capa via STOMP
-     * Cliente envia para: /app/album/update/{id}
-     * Resposta publicada em: /topic/album/updated
-     */
     @MessageMapping("/album/update/{id}")
     @SendTo("/topic/album/updated")
     public AlbumStompResponse updateAlbum(
@@ -111,7 +96,6 @@ public class AlbumStompController {
                 albumWithCoverDTO.fileName(),
                 albumWithCoverDTO.fileBase64() != null ? albumWithCoverDTO.fileBase64().length() : 0);
             
-            // Atualizar álbum
             AlbumDTO albumDTO = new AlbumDTO(
                 albumWithCoverDTO.nome(),
                 albumWithCoverDTO.artistaId(),
@@ -119,7 +103,6 @@ public class AlbumStompController {
             );
             Album album = albumService.updateAlbum(id, albumDTO);
 
-            // Se houver imagem, fazer upload
             if (albumWithCoverDTO.fileBase64() != null && !albumWithCoverDTO.fileBase64().isEmpty()) {
                 try {
                     byte[] decodedBytes = java.util.Base64.getDecoder().decode(albumWithCoverDTO.fileBase64());
@@ -128,14 +111,12 @@ public class AlbumStompController {
                     logger.info("Capa enviada com sucesso para o álbum {}", album.getId());
                 } catch (Exception e) {
                     logger.error("Erro ao fazer upload da capa", e);
-                    // Continua mesmo com erro na capa
+
                 }
             }
 
-            // Recarregar álbum para pegar capas
             album = albumService.getById(album.getId());
             
-            // Converter capas para DTO
             var capasDTO = album.getCapas().stream()
                 .map(cover -> AlbumCoverResponseDTO.fromAlbumCover(
                     cover,
@@ -160,11 +141,6 @@ public class AlbumStompController {
         }
     }
 
-    /**
-     * Obtém um álbum via STOMP
-     * Cliente envia para: /app/album/get/{id}
-     * Resposta publicada em: /topic/album/details
-     */
     @MessageMapping("/album/get/{id}")
     @SendTo("/topic/album/details")
     public AlbumStompResponse getAlbum(@DestinationVariable Long id) {
@@ -172,7 +148,6 @@ public class AlbumStompController {
             logger.info("Obtendo álbum {} via STOMP", id);
             Album album = albumService.getById(id);
             
-            // Converter capas para DTO
             var capasDTO = album.getCapas().stream()
                 .map(cover -> AlbumCoverResponseDTO.fromAlbumCover(
                     cover,

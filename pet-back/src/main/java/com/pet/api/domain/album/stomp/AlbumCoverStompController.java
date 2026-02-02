@@ -38,13 +38,10 @@ public class AlbumCoverStompController {
         try {
             logger.info("Fazendo upload de capa para álbum {} via STOMP", albumId);
             
-            // Decodificar base64 e criar arquivo
             byte[] decodedBytes = java.util.Base64.getDecoder().decode(request.fileBase64());
             
-            // Salvar no MinIO
             String objectKey = minioService.uploadFileFromBytes(decodedBytes, request.fileName());
             
-            // Criar registro no banco
             AlbumCover albumCover = new AlbumCover();
             albumCover.setObjectKey(objectKey);
             

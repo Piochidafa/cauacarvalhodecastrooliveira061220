@@ -16,7 +16,6 @@ public class AlbumWebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        // Use a dedicated raw WebSocket endpoint to avoid clashing with STOMP /ws/album
         registry.addHandler(albumWebSocketHandler, "/ws/album/raw")
             .setAllowedOriginPatterns("http://localhost:5173", "http://localhost:8083");
     }

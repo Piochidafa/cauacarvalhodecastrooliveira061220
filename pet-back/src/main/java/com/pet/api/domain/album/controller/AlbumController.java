@@ -55,13 +55,10 @@ public class AlbumController {
         AlbumDTO albumDTO = new AlbumDTO(nome, artistaId, regionalId);
         Album album = albumService.createAlbum(albumDTO);
 
-        // Se houver arquivo, fazer upload
         if (file != null && !file.isEmpty()) {
             String objectKey = minioService.uploadFile(file);
             albumCoverService.createAlbumCoverWithKey(album.getId(), objectKey);
         }
-
-        // Recarregar para incluir capas
         return albumService.getById(album.getId());
     }
 
@@ -89,13 +86,11 @@ public class AlbumController {
         AlbumDTO albumDTO = new AlbumDTO(nome, artistaId, regionalId);
         Album album = albumService.updateAlbum(id, albumDTO);
 
-        // Se houver arquivo, fazer upload
         if (file != null && !file.isEmpty()) {
             String objectKey = minioService.uploadFile(file);
             albumCoverService.createAlbumCoverWithKey(album.getId(), objectKey);
         }
 
-        // Recarregar para incluir capas
         return albumService.getById(album.getId());
     }
 
