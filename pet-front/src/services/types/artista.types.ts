@@ -26,7 +26,10 @@ export interface AlbumSummary {
   nome: string;
   createdAt: string;
   updatedAt: string;
+  artista?: Pick<Artista, 'id' | 'nome'>;
   regional?: Regional;
+  regionalId?: number;
+  artistaId?: number;
   capas?: AlbumCover[];
 }
 

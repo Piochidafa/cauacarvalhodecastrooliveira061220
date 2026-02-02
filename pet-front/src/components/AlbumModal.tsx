@@ -152,8 +152,10 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
     if (album) {
       currentAlbumId.current = album.id;
 
-      const resolvedArtistaIdRaw = album.artista?.id ?? (album as any).artistaId ?? artistaId;
-      const resolvedRegionalIdRaw = album.regional?.id ?? (album as any).regionalId ?? 0;
+      const resolvedArtistaIdRaw =
+        album.artista?.id ?? ('artistaId' in album ? album.artistaId : undefined) ?? artistaId;
+      const resolvedRegionalIdRaw =
+        album.regional?.id ?? ('regionalId' in album ? album.regionalId : undefined) ?? 0;
       const resolvedArtistaId = resolvedArtistaIdRaw ? Number(resolvedArtistaIdRaw) : undefined;
       const resolvedRegionalId = resolvedRegionalIdRaw ? Number(resolvedRegionalIdRaw) : 0;
 
