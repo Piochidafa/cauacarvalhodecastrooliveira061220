@@ -8,7 +8,7 @@ import { Menu } from 'primereact/menu';
 import { Dialog } from 'primereact/dialog';
 import artistaFacade from '../services/facades/artistaFacade';
 import albumService from '../services/api/albumService';
-import type { Artista, Album } from '../services/types/artista.types';
+import type { Album, AlbumSummary, ArtistaDetailPagedResponse } from '../services/types/artista.types';
 import { Image } from 'primereact/image';
 import AlbumModal from './AlbumModal';
 import ArtistCreateModal from './ArtistCreateModal';
@@ -27,13 +27,13 @@ interface PaginatorChangeEvent {
 function ArtistDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [artista, setArtista] = useState<Artista | null>(null);
-  const [albuns, setAlbuns] = useState<Album[]>([]);
+  const [artista, setArtista] = useState<ArtistaDetailPagedResponse | null>(null);
+  const [albuns, setAlbuns] = useState<AlbumSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [coverUrls, setCoverUrls] = useState<Record<number, string[]>>({});
   const [cachedCoverUrls, setCachedCoverUrls] = useState<Record<number, string[]>>({});
   const [albumModalVisible, setAlbumModalVisible] = useState(false);
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | AlbumSummary | null>(null);
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [editArtistName, setEditArtistName] = useState('');
   const [editArtistImageFile, setEditArtistImageFile] = useState<File | null>(null);
@@ -47,9 +47,9 @@ function ArtistDetail() {
   const [albumTotalRecords, setAlbumTotalRecords] = useState(0);
   const [albumsLoading, setAlbumsLoading] = useState(false);
   const albumMenuRef = useRef<Menu>(null);
-  const [menuAlbum, setMenuAlbum] = useState<Album | null>(null);
+  const [menuAlbum, setMenuAlbum] = useState<Album | AlbumSummary | null>(null);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-  const [albumToDelete, setAlbumToDelete] = useState<Album | null>(null);
+  const [albumToDelete, setAlbumToDelete] = useState<Album | AlbumSummary | null>(null);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 14, scale: 0.98 },
@@ -62,64 +62,57 @@ function ArtistDetail() {
   };
 
   useEffect(() => {
-    loadArtista();
-  }, [id]);
-
-  useEffect(() => {
     if (!id) return;
-    fetchAlbuns();
-  }, [id, albumPage, albumRows, albumSortOrder]);
-
-  useEffect(() => {
-    if (albuns.length === 0) return;
-    setCoverUrls(buildCoverUrls(albuns, cachedCoverUrls));
-  }, [cachedCoverUrls, albuns]);
-
-  const loadArtista = async () => {
+    fetchArtistaDetail();
+  }, [id, albumPage, albumRows, albumSortOrder, albumSearchTerm]);
+  const fetchArtistaDetail = async (pageOverride?: number, rowsOverride?: number, termOverride?: string) => {
     if (!id) return;
-    setLoading(true);
+    const pageToUse = pageOverride ?? albumPage;
+    const rowsToUse = rowsOverride ?? albumRows;
+    const trimmed = (termOverride ?? albumSearchTerm).trim();
+    const shouldShowPageLoader = !artista;
+
+    if (shouldShowPageLoader) {
+      setLoading(true);
+    }
+    setAlbumsLoading(true);
     try {
-      const artistaData = await artistaFacade.getArtista(parseInt(id));
-      setArtista(artistaData);
-      setEditCurrentImageUrl(artistaData?.imageUrl || null);
-      if (artistaData?.albuns) {
-        const urlsFromArtist = buildCoverUrls(artistaData.albuns, {});
-        setCachedCoverUrls(urlsFromArtist);
-      } else if (!artistaData) {
+      const response = await artistaFacade.getArtistaDetailPaged(
+        parseInt(id),
+        pageToUse,
+        rowsToUse,
+        'nome',
+        albumSortOrder,
+        trimmed || undefined
+      );
+
+      if (!response) {
         setAlbuns([]);
         setCoverUrls({});
         setCachedCoverUrls({});
+        setArtista(null);
+        return;
       }
+
+      setArtista(response);
+      setEditCurrentImageUrl(response.imageUrl || null);
+      setAlbuns(response.albuns.content);
+      setAlbumTotalRecords(response.albuns.totalElements);
+
+      const urlsFromResponse = buildCoverUrls(response.albuns.content, cachedCoverUrls);
+      setCoverUrls(urlsFromResponse);
+      setCachedCoverUrls((prev) => ({ ...prev, ...urlsFromResponse }));
     } catch (err) {
       toast.error('Erro ao carregar artista');
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAlbuns = async (pageOverride?: number, rowsOverride?: number) => {
-    if (!id) return;
-    setAlbumsLoading(true);
-    try {
-      const pageToUse = pageOverride ?? albumPage;
-      const rowsToUse = rowsOverride ?? albumRows;
-      const trimmed = albumSearchTerm.trim();
-
-      const response = trimmed
-        ? await albumService.searchAlbunsByArtista(trimmed, parseInt(id), pageToUse, rowsToUse, 'nome', albumSortOrder)
-        : await albumService.getAlbunsByArtista(parseInt(id), pageToUse, rowsToUse, 'nome', albumSortOrder);
-
-      setAlbuns(response.content);
-      setAlbumTotalRecords(response.totalElements);
-      setCoverUrls(buildCoverUrls(response.content, cachedCoverUrls));
-    } catch (err) {
-      toast.error('Erro ao carregar álbuns');
-    } finally {
       setAlbumsLoading(false);
+      if (shouldShowPageLoader) {
+        setLoading(false);
+      }
     }
   };
 
-  const buildCoverUrls = (albunsData: Album[], fallback: Record<number, string[]>) => {
+  const buildCoverUrls = (albunsData: AlbumSummary[], fallback: Record<number, string[]>) => {
     const urls: Record<number, string[]> = {};
 
     albunsData.forEach((album) => {
@@ -155,14 +148,14 @@ function ArtistDetail() {
   const handleRemoveArtistImage = async () => {
     if (!artista) return;
     try {
-      await artistaFacade.removeArtistaImage(artista.id);
+      await artistaFacade.removeArtistaImage(artista.id, { refreshList: false });
       setEditArtistImageFile(null);
       if (editArtistPreviewUrl) {
         URL.revokeObjectURL(editArtistPreviewUrl);
       }
       setEditArtistPreviewUrl(null);
       setEditCurrentImageUrl(null);
-      await loadArtista();
+      await fetchArtistaDetail();
       toast.success('Imagem removida com sucesso!');
     } catch (err: any) {
       toast.error(err.message || 'Erro ao remover imagem');
@@ -170,11 +163,11 @@ function ArtistDetail() {
   };
 
 
-  const handleDeleteAlbum = async (album: Album) => {
+  const handleDeleteAlbum = async (album: Album | AlbumSummary) => {
     try {
       await albumService.deleteAlbum(album.id);
       toast.success('Álbum excluído com sucesso!');
-      await fetchAlbuns();
+      await fetchArtistaDetail();
     } catch (error: any) {
       toast.error(error.message || 'Erro ao excluir álbum');
     }
@@ -504,8 +497,7 @@ function ArtistDetail() {
         onSuccess={async () => {
           setAlbumModalVisible(false);
           setSelectedAlbum(null);
-          await loadArtista();
-          await fetchAlbuns();
+          await fetchArtistaDetail();
         }}
       />
 
@@ -536,9 +528,9 @@ function ArtistDetail() {
 
           setUpdatingArtist(true);
           try {
-            await artistaFacade.updateArtista(artista.id, { nome: editArtistName.trim() });
+            await artistaFacade.updateArtista(artista.id, { nome: editArtistName.trim() }, { refreshList: false });
             if (editArtistImageFile) {
-              await artistaFacade.uploadArtistaImage(artista.id, editArtistImageFile);
+              await artistaFacade.uploadArtistaImage(artista.id, editArtistImageFile, { refreshList: false });
               setEditArtistImageFile(null);
               if (editArtistPreviewUrl) {
                 URL.revokeObjectURL(editArtistPreviewUrl);
@@ -547,7 +539,7 @@ function ArtistDetail() {
             }
             toast.success('Artista atualizado com sucesso!');
             setEditDialogVisible(false);
-            await loadArtista();
+            await fetchArtistaDetail();
           } catch (error: any) {
             toast.error(error.message || 'Erro ao atualizar artista');
           } finally {

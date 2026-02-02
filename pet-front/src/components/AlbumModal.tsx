@@ -9,12 +9,12 @@ import { Client } from '@stomp/stompjs';
 import { motion } from 'motion/react';
 import albumCoverService from '../services/api/albumCoverService';
 import regionalFacade from '../services/facades/regionalFacade';
-import type { CreateAlbumRequest, Album, AlbumCover } from '../services/types/artista.types';
+import type { CreateAlbumRequest, Album, AlbumCover, AlbumSummary } from '../services/types/artista.types';
 import type { Regional } from '../services/types/regional.types';
 
 interface AlbumModalProps {
   visible: boolean;
-  album?: Album | null;
+  album?: Album | AlbumSummary | null;
   artistaId?: number;
   onHide: () => void;
   onSuccess: () => void;
