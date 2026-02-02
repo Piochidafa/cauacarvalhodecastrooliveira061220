@@ -30,7 +30,6 @@ class AlbumCoverService {
       });
       return response.data;
     } catch (error) {
-      // Fallback para o endpoint antigo caso o múltiplo não esteja disponível
       const uploaded = await Promise.all(files.map((file) => this.uploadCover(file, albumId)));
       return uploaded;
     }

@@ -27,7 +27,6 @@ function Login() {
 
         try {
             await authFacade.login({ username, password });
-            // console.log("Login realizado com sucesso:", response);
             
             // Disparar evento customizado para atualizar o menu
             window.dispatchEvent(new Event('authChange'));

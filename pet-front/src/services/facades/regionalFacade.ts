@@ -62,7 +62,7 @@ class RegionalFacade {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
       const regional = await regionalService.createRegional(data);
-      // Recarregar lista
+      
       await this.loadRegionals();
       return regional;
     } catch (error: any) {
@@ -78,7 +78,7 @@ class RegionalFacade {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
       const regional = await regionalService.updateRegional(id, data);
-      // Recarregar lista
+      
       await this.loadRegionals();
       return regional;
     } catch (error: any) {
@@ -94,7 +94,7 @@ class RegionalFacade {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
       await regionalService.deleteRegional(id);
-      // Recarregar lista
+      
       await this.loadRegionals();
       return true;
     } catch (error: any) {

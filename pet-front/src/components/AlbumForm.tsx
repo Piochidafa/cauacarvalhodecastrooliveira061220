@@ -20,7 +20,6 @@ function AlbumForm() {
     if (id && id !== 'novo') {
       loadAlbum();
     } else {
-      // Modo criação - artistaId já vem da URL
       setModalVisible(true);
     }
   }, [id]);

@@ -5,7 +5,6 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 import ProtectedRoute from './components/ProtectedRoute';
 import { authFacade } from './services/facades/authFacade';
 
-// Lazy loading
 const Login = lazy(() => import('./pages/Login/Login'));
 const ArtistList = lazy(() => import('./components/ArtistList'));
 const ArtistDetail = lazy(() => import('./components/ArtistDetail'));

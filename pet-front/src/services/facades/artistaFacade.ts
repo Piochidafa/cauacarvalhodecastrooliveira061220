@@ -192,7 +192,6 @@ class ArtistFacade {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
       await artistaService.deleteArtista(id);
-      // Recarregar lista
       await this.loadArtistas();
       return true;
     } catch (error: any) {
