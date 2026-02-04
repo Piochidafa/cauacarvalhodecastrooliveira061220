@@ -65,6 +65,15 @@ function ArtistDetail() {
     if (!id) return;
     fetchArtistaDetail();
   }, [id, albumPage, albumRows, albumSortOrder, albumSearchTerm]);
+
+  useEffect(() => {
+    const errorSubscription = artistaFacade.error$.subscribe((error) => {
+      if (error) toast.error(error);
+    });
+    return () => {
+      errorSubscription.unsubscribe();
+    };
+  }, []);
   const fetchArtistaDetail = async (pageOverride?: number, rowsOverride?: number, termOverride?: string) => {
     if (!id) return;
     const pageToUse = pageOverride ?? albumPage;

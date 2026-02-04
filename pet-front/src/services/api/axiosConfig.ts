@@ -61,6 +61,9 @@ api.interceptors.response.use(
     }
 
     const status = error.response.status;
+    if (status === 429) {
+      error.message = 'Muitas requisições. Tente novamente em alguns instantes.';
+    }
     const isAuthError = status === 401 || status === 403;
     const isRefreshRequest = originalRequest.url?.includes('/v1/auth/refresh');
 
