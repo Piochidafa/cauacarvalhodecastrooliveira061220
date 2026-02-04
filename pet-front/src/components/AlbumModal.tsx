@@ -207,6 +207,20 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
     }
   };
 
+  const handleCopyCoverLink = async (url?: string) => {
+    if (!url) {
+      toast.error('Link da capa indisponivel');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copiado!');
+    } catch (error) {
+      console.error('Erro ao copiar link:', error);
+      toast.error('Nao foi possivel copiar o link');
+    }
+  };
+
   useEffect(() => {
     if (!files || files.length === 0) {
       setPreviewUrls([]);
@@ -430,11 +444,24 @@ function AlbumModal({ visible, album, artistaId, onHide, onSuccess }: AlbumModal
                   <div key={cover.id} className="col-3">
                     {cover.url ? (
                       <div className="relative">
+                        
                         <img
                           src={cover.url}
                           alt="Capa atual"
                           className="border-2"
                           style={{ width: '100%', height: '16rem', objectFit: 'cover', borderRadius: '3vh' }}
+                          />
+                         
+                        <Button
+                          icon="pi pi-link"
+                          className="p-button-help p-button-rounded p-button-sm"
+                          style={{ position: 'absolute', top: '0.5rem', left: '0.5rem' }}
+                          type="button"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            void handleCopyCoverLink(cover.url);
+                          }}
                         />
                         <Button
                           icon="pi pi-trash"
