@@ -10,8 +10,6 @@ const ArtistList = lazy(() => import('./components/ArtistList'));
 const ArtistDetail = lazy(() => import('./components/ArtistDetail'));
 const ArtistForm = lazy(() => import('./components/ArtistForm'));
 const AlbumForm = lazy(() => import('./components/AlbumForm'));
-const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'));
-const TestRefresh = lazy(() => import('./pages/TestRefresh/TestRefresh'));
 const NotFound = lazy(() => import('./pages/NotFound/NotFound'));
 
 function LoadingFallback() {
@@ -189,22 +187,7 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/test-refresh"
-              element={
-                <ProtectedRoute>
-                  <TestRefresh />
-                </ProtectedRoute>
-              }
-            />
+
 
             {/* 404 */}
             <Route path="/not-found" element={<NotFound />} />
