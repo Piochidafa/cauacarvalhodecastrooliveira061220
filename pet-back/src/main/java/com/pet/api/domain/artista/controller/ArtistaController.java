@@ -116,7 +116,7 @@ public class ArtistaController {
     }
 
     @GetMapping("/{id}/detail")
-    @Operation(summary = "ObtÃ©m um artista por ID com Ã¡lbuns paginados")
+    @Operation(summary = "Obtem um artista por ID com Albuns paginados")
     public ArtistaDetailPageResponseDTO getArtistaDetailPaged(
             @PathVariable Long id,
             @RequestParam(required = false) String nome,

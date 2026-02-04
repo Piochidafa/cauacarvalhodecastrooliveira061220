@@ -323,16 +323,16 @@ function ArtistDetail() {
           <div className="flex flex-column align-items-center justify-content-center py-6 text-center surface-100 border-round-2xl">
             <i className="pi pi-image text-5xl text-400 mb-3" />
             <h3 className="text-xl font-semibold mb-2">Nenhum álbum encontrado</h3>
-            <p className="text-500 mb-3">{albumSearchTerm != '' ? 'Album nao encontrado' : 'Este artista ainda não possui álbuns'} </p>
-            <Button
-              label="Adicionar Álbum"
-              icon="pi pi-plus"
-              onClick={() => {
-                setSelectedAlbum(null);
-                setAlbumModalVisible(true);
-              }}
-              className="p-button-success"
-            />
+          <Button
+            label="Adicionar Álbum"
+            icon="pi pi-plus"
+            onClick={() => {
+              setSelectedAlbum(null);
+              setAlbumModalVisible(true);
+            }}
+            className="gap-2 border-round-lg px-2"
+            style={{ padding: '0.6vh' }}
+          />
           </div>
         ) : (
           <>

@@ -106,7 +106,7 @@ function ArtistForm() {
 
   return (
     <div className="p-4 flex justify-content-center">
-      <Card title={id === 'novo' ? 'Novo Artista' : 'Editar Artista'} style={{ width: '400px' }}>
+      <Card title={id === 'novo' ? 'Novo Artista/banda' : 'Editar Artista/banda'} style={{ width: '400px' }}>
         {loading && <ProgressSpinner />}
 
         <form onSubmit={handleSubmit}>

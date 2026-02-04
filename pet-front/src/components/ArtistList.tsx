@@ -310,7 +310,7 @@ function ArtistList() {
 					end={
 						<div className="flex align-items-center gap-3">
 							<Button
-								label="Novo Artista"
+								label="Novo Artista/banda"
 								icon="pi pi-plus"
 								onClick={() => setCreateDialogVisible(true)}
 								className="gap-2 border-round-lg px-2"

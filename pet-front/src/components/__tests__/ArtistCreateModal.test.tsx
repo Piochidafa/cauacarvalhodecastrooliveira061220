@@ -17,7 +17,7 @@ describe('ArtistCreateModal', () => {
       />
     );
 
-    expect(screen.getByText('Novo Artista:')).toBeInTheDocument();
+    expect(screen.getByText('Novo Artista/banda:')).toBeInTheDocument();
     expect(screen.getByLabelText('Nome do artista:')).toBeInTheDocument();
     expect(screen.getByLabelText('Imagem (opcional):')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Salvar' })).toBeInTheDocument();

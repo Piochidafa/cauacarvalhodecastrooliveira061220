@@ -29,7 +29,7 @@ function ArtistCreateModal({
   currentImageUrl,
   onImageChange,
   onRemoveImage,
-  title = 'Novo Artista:',
+  title = 'Novo Artista/banda:',
   saveLabel = 'Salvar'
 }: ArtistCreateModalProps) {
   const imageUrlToShow = imagePreviewUrl || currentImageUrl || null;
