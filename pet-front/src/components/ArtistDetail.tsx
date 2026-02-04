@@ -43,7 +43,7 @@ function ArtistDetail() {
   const albumSearchTerm = '';
   const albumSortOrder: 'asc' | 'desc' = 'asc';
   const [albumPage, setAlbumPage] = useState(0);
-  const [albumRows, setAlbumRows] = useState(8);
+  const [albumRows, setAlbumRows] = useState(6);
   const [albumTotalRecords, setAlbumTotalRecords] = useState(0);
   const [albumsLoading, setAlbumsLoading] = useState(false);
   const albumMenuRef = useRef<Menu>(null);
