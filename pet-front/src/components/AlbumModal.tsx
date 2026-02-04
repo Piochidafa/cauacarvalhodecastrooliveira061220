@@ -9,7 +9,7 @@ import { Client } from '@stomp/stompjs';
 import { motion } from 'motion/react';
 import albumCoverService from '../services/api/albumCoverService';
 import regionalFacade from '../services/facades/regionalFacade';
-import type { CreateAlbumRequest, Album, AlbumCover, AlbumLike } from '../services/types/artista.types';
+import type { CreateAlbumRequest, AlbumCover, AlbumLike } from '../services/types/artista.types';
 import type { Regional } from '../services/types/regional.types';
 
 interface AlbumModalProps {
