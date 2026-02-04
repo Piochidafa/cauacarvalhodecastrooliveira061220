@@ -57,6 +57,43 @@ cd pet-front
 npm test
 ```
 
+## Passo a passo (Fluxos das telas)
+### 1) Login (Autenticação)
+1. Acesse o Front em http://localhost:5173
+2. Faça login com:
+   - Usuário: `admin`
+   - Senha: `admin`
+3. Após login, o app carrega a tela inicial (lista de artistas).
+
+### 2) Tela Inicial - Listagem de Artistas
+1. Verifique a lista de artistas em cards/tabela (nome e nº de álbuns).
+2. Use a busca por nome no campo de pesquisa.
+3. Teste ordenação asc/desc.
+4. Navegue entre páginas (paginação).
+
+### 3) Tela de Detalhamento do Artista
+1. Clique em um artista na lista.
+2. Valide a exibição dos álbuns associados e suas capas.
+3. Se não houver álbuns, confira a mensagem de vazio.
+
+### 4) Cadastro/Edição de Artista
+1. Na lista de artistas, clique em "Novo Artista".
+2. Preencha o formulário e salve.
+3. Para editar, selecione um artista e use a ação de edição.
+4. Faça upload/remoção de imagem do artista quando aplicável.
+
+### 5) Cadastro/Edição de Álbum + Upload de Capas
+1. Dentro do detalhe do artista, clique em "Adicionar Álbum".
+2. Preencha o formulário com nome e regional.
+3. Faça upload de uma ou mais capas (MinIO).
+4. Salve e confirme o álbum listado com as capas.
+5. Edite um álbum existente e confira a atualização.
+
+### 6) Expiração/Renovação de Token
+1. Aguarde o Access Token quase expirar (4 minutos).
+2. Ira aparecer um toast perguntando se deseja renovar a sessao.
+3. O refresh é acionado manualmente via um botao no toast.
+
 ## Variaveis de Ambiente (Docker)
 - API:
   - `SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/petDB`
