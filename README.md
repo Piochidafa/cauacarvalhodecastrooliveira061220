@@ -167,6 +167,8 @@ docker run --rm -v "%cd%:/app" -w /app/pet-front node:20 bash -lc "npm ci && npm
 3. Faça upload de uma ou mais capas (MinIO).
 4. Salve e confirme o álbum listado com as capas.
 5. Edite um álbum existente e confira a atualização.
+6. Para recuperar o link da imagem, clique no album que contenha a imagem desejada
+6.1.  Clique no botao que esta na parte superior esquerda da imagem desejada na listagem de imagens
 
 ### 6) Expiração/Renovação de Token
 1. Aguarde o Access Token quase expirar (4 minutos).
