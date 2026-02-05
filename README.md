@@ -50,39 +50,6 @@
 - **Qualidade**: TypeScript reduz bugs de contrato.
 
 
-### Testes Sem Node/Java instalados (somente Docker)
-#### Back-end
-Use o comando abaixo conforme seu shell:
-- **Linux/macOS (bash/zsh)**:
-```
-docker run --rm -v "$(pwd):/app" -w /app/pet-back maven:3.9-eclipse-temurin-21 mvn test
-```
-- **Windows PowerShell**:
-```
-docker run --rm -v "${PWD}:/app" -w /app/pet-back maven:3.9-eclipse-temurin-21 mvn test
-```
-- **Windows CMD**:
-```
-docker run --rm -v "%cd%:/app" -w /app/pet-back maven:3.9-eclipse-temurin-21 mvn test
-```
-
-#### Front-end
-Use o comando abaixo conforme seu shell:
-- **Linux/macOS (bash/zsh)**:
-```
-docker run --rm -v "$(pwd):/app" -w /app/pet-front node:20 bash -lc "npm ci && npm test"
-```
-- **Windows PowerShell**:
-```
-docker run --rm -v "${PWD}:/app" -w /app/pet-front node:20 bash -lc "npm ci && npm test"
-```
-- **Windows CMD**:
-```
-docker run --rm -v "%cd%:/app" -w /app/pet-front node:20 bash -lc "npm ci && npm test"
-```
-
-
-
 ## Como executar (Docker)
 1) Subir os containers:
 Recomendado: limpar imagens/containers/volumes antes de subir, para evitar conflitos de banco/porta.
@@ -121,6 +88,39 @@ Windows CMD:
 ```
 docker compose up --build
 ```
+
+### Testes Sem Node/Java instalados (somente Docker)
+#### Back-end
+Use o comando abaixo conforme seu shell:
+- **Linux/macOS (bash/zsh)**:
+```
+docker run --rm -v "$(pwd):/app" -w /app/pet-back maven:3.9-eclipse-temurin-21 mvn test
+```
+- **Windows PowerShell**:
+```
+docker run --rm -v "${PWD}:/app" -w /app/pet-back maven:3.9-eclipse-temurin-21 mvn test
+```
+- **Windows CMD**:
+```
+docker run --rm -v "%cd%:/app" -w /app/pet-back maven:3.9-eclipse-temurin-21 mvn test
+```
+
+#### Front-end
+Use o comando abaixo conforme seu shell:
+- **Linux/macOS (bash/zsh)**:
+```
+docker run --rm -v "$(pwd):/app" -w /app/pet-front node:20 bash -lc "npm ci && npm test"
+```
+- **Windows PowerShell**:
+```
+docker run --rm -v "${PWD}:/app" -w /app/pet-front node:20 bash -lc "npm ci && npm test"
+```
+- **Windows CMD**:
+```
+docker run --rm -v "%cd%:/app" -w /app/pet-front node:20 bash -lc "npm ci && npm test"
+```
+
+
 
 2) Acessos:
 - Front: http://localhost:5173
