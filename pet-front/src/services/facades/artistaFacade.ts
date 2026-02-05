@@ -187,12 +187,14 @@ class ArtistFacade {
     }
   }
 
-  async deleteArtista(id: number): Promise<boolean> {
+  async deleteArtista(id: number, options?: { refreshList?: boolean }): Promise<boolean> {
     try {
       this.loadingSubject.next(true);
       this.errorSubject.next(null);
       await artistaService.deleteArtista(id);
-      await this.loadArtistas();
+      if (this.resolveRefreshList(options?.refreshList)) {
+        await this.loadArtistas();
+      }
       return true;
     } catch (error: any) {
       this.errorSubject.next(error.message || 'Erro ao deletar artista');

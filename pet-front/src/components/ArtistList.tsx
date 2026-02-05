@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Button } from "primereact/button";
@@ -7,6 +7,8 @@ import { Card } from "primereact/card";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Paginator } from "primereact/paginator";
 import { Menubar } from "primereact/menubar";
+import { Menu } from "primereact/menu";
+import { Dialog } from "primereact/dialog";
 
 import defaultUserPFP from "../assets/ArtistaAssets/defaultSinger.png";
 import svgMenuBar from "../assets/ArtistaAssets/music-tone-svgrepo-com.svg";
@@ -42,6 +44,10 @@ function ArtistList() {
 		null,
 	);
 	const [creatingArtist, setCreatingArtist] = useState(false);
+	const artistMenuRef = useRef<Menu>(null);
+	const [menuArtist, setMenuArtist] = useState<Artista | null>(null);
+	const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+	const [artistToDelete, setArtistToDelete] = useState<Artista | null>(null);
 
 	useEffect(() => {
 		const fetchArtistas = async () => {
@@ -105,6 +111,20 @@ function ArtistList() {
 		} else {
 			await artistaFacade.loadArtistas(0, rows, "nome", sortOrder);
 			setPage(0);
+		}
+	};
+
+	const reloadCurrentPage = async () => {
+		if (searchTerm.trim()) {
+			await artistaFacade.searchArtistas(
+				searchTerm,
+				page,
+				rows,
+				"nome",
+				sortOrder,
+			);
+		} else {
+			await artistaFacade.loadArtistas(page, rows, "nome", sortOrder);
 		}
 	};
 
@@ -177,6 +197,20 @@ function ArtistList() {
 
 	const toggleSortOrder = () => {
 		setSortOrder((current) => (current === "asc" ? "desc" : "asc"));
+	};
+
+	const handleDeleteArtist = async (artista: Artista) => {
+		try {
+			const ok = await artistaFacade.deleteArtista(artista.id, { refreshList: false });
+			if (ok) {
+				toast.success("Artista excluido com sucesso!");
+				await reloadCurrentPage();
+			} else {
+				toast.error("Erro ao excluir artista");
+			}
+		} catch (error: any) {
+			toast.error(error.message || "Erro ao excluir artista");
+		}
 	};
 
 	const clearSearch = async () => {
@@ -259,6 +293,19 @@ function ArtistList() {
 		</motion.div>
 	);
 
+	const artistMenuItems = [
+		{
+			label: "Excluir artista",
+			icon: "pi pi-trash",
+			command: () => {
+				if (menuArtist) {
+					setArtistToDelete(menuArtist);
+					setDeleteDialogVisible(true);
+				}
+			},
+		},
+	];
+
 	return (
 		<motion.div
 			className="flex flex-column"
@@ -266,6 +313,7 @@ function ArtistList() {
 			animate={{ opacity: 1 }}
 			transition={{ duration: 0.35 }}
 		>
+			<Menu model={artistMenuItems} popup ref={artistMenuRef} className="album-menu" />
 			<motion.div
 				initial={{ y: -12, opacity: 0 }}
 				animate={{ y: 0, opacity: 1 }}
@@ -437,7 +485,7 @@ function ArtistList() {
 																	padding: "1rem",
 																}}
 															>
-																<div className="flex flex-row justify-content-between align-items-center">
+																<div className="flex flex-row justify-content-between align-items-center w-full">
 																	<span
 																		className=" pointer font-bold text-lg pt-2 pl-1"
 																		style={{
@@ -446,6 +494,15 @@ function ArtistList() {
 																	>
 																		{artista.nome}
 																	</span>
+																	<Button
+																		icon="pi pi-ellipsis-v"
+																		className="p-button-sm p-button-text p-button-plain p-1"
+																		onClick={(event) => {
+																			event.stopPropagation();
+																			setMenuArtist(artista);
+																			artistMenuRef.current?.toggle(event);
+																		}}
+																	/>
 																</div>
 
 																<div
@@ -532,6 +589,39 @@ function ArtistList() {
 				imagePreviewUrl={newArtistPreviewUrl}
 				onImageChange={handleNewArtistImageChange}
 			/>
+
+			<Dialog
+				header="Confirmar exclusao"
+				visible={deleteDialogVisible}
+				onHide={() => {
+					setDeleteDialogVisible(false);
+					setArtistToDelete(null);
+				}}
+				style={{ width: "26rem" }}
+				modal
+			>
+				<p className="m-0 p-2">Tem certeza que deseja excluir este artista?</p>
+				<div className="flex justify-content-end gap-2 mt-4 p-3">
+					<Button
+						label="Cancelar"
+						className="p-button-text p-1"
+						onClick={() => {
+							setDeleteDialogVisible(false);
+							setArtistToDelete(null);
+						}}
+					/>
+					<Button
+						label="Excluir"
+						className="p-button-danger p-1"
+						onClick={async () => {
+							if (!artistToDelete) return;
+							await handleDeleteArtist(artistToDelete);
+							setDeleteDialogVisible(false);
+							setArtistToDelete(null);
+						}}
+					/>
+				</div>
+			</Dialog>
 		</motion.div>
 	);
 }
