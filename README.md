@@ -85,6 +85,39 @@ docker run --rm -v "%cd%:/app" -w /app/pet-front node:20 bash -lc "npm ci && npm
 
 ## Como executar (Docker)
 1) Subir os containers:
+Recomendado: limpar imagens/containers/volumes antes de subir, para evitar conflitos de banco/porta.
+
+Linux/macOS (bash/zsh):
+```
+docker rmi -f $(docker ps -aq)
+docker system prune -a --volumes -f
+```
+
+Windows PowerShell:
+```
+docker rmi -f $(docker ps -aq)
+docker system prune -a --volumes -f
+```
+
+Windows CMD:
+```
+for /f "delims=" %i in ('docker ps -aq') do docker rmi -f %i
+docker system prune -a --volumes -f
+```
+
+Na raiz `cauacarvalhodecastrooliveira061220`, suba os servicos:
+
+Linux/macOS (bash/zsh):
+```
+docker compose up --build
+```
+
+Windows PowerShell:
+```
+docker compose up --build
+```
+
+Windows CMD:
 ```
 docker compose up --build
 ```
@@ -96,6 +129,11 @@ docker compose up --build
 - - Usuario: minioadmin
 - - Senha: minioadmin123
 - Health (API): http://localhost:8083/actuator/health
+
+## Rate Limit (API)
+- **Limite**: 10 requisicoes por minuto por usuario autenticado.
+- **Aplica em**: rotas `/v1/**` (exceto `/v1/auth/**`).
+- **Resposta ao exceder**: HTTP 429 com mensagem informando o limite e para tentar novamente em alguns segundos.
 
 
 ## Passo a passo (Fluxos das telas)
