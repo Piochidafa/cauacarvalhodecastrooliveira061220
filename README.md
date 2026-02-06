@@ -62,7 +62,7 @@ docker system prune -a --volumes -f
 
 Windows PowerShell:
 ```
-docker rmi -f $(docker ps -aq)
+docker rmi -f (docker ps -aq)
 docker system prune -a --volumes -f
 ```
 
