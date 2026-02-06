@@ -56,19 +56,19 @@ Recomendado: limpar imagens/containers/volumes antes de subir, para evitar confl
 
 Linux/macOS (bash/zsh):
 ```
-docker rmi -f $(docker ps -aq)
+docker rm -f $(docker ps -aq)
 docker system prune -a --volumes -f
 ```
 
 Windows PowerShell:
 ```
-docker rmi -f (docker ps -aq)
+docker rm -f (docker ps -aq)
 docker system prune -a --volumes -f
 ```
 
 Windows CMD:
 ```
-for /f "delims=" %i in ('docker ps -aq') do docker rmi -f %i
+for /f "delims=" %i in ('docker ps -aq') do docker rm -f %i
 docker system prune -a --volumes -f
 ```
 
